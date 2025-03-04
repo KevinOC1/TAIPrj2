@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}HeroVerse Comics - Inicio{% endblock %}
+
+{% block content %}
+<div class="welcome">
+    <h2>Bienvenido a HeroVerse Comics</h2>
+    <p>Sistema de gestión para tu tienda de cómics</p>
+    
+    <div class="quick-links">
+        <a href="/inventario" class="quick-link-card">
+            <h3>Inventario</h3>
+            <p>Gestiona tu stock de cómics</p>
+        </a>
+        <a href="/pedidos" class="quick-link-card">
+            <h3>Pedidos</h3>
+            <p>Administra los pedidos de clientes</p>
+        </a>
+        <a href="/clientes" class="quick-link-card">
+            <h3>Clientes</h3>
+            <p>Gestiona información de clientes</p>
+        </a>
+        <a href="/proveedores" class="quick-link-card">
+            <h3>Proveedores</h3>
+            <p>Administra tus proveedores</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

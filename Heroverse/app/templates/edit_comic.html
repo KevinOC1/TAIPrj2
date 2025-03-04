@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Comic - {{ comic.title }}{% endblock %}
+
+{% block content %}
+<div class="edit-comic-container">
+    <h2>Editar Comic</h2>
+    <div class="comic-edit-form">
+        <div class="comic-image-preview">
+            <img src="{{ comic.image_url }}" alt="{{ comic.title }}">
+            <h3>{{ comic.title }}</h3>
+        </div>
+        
+        <form action="/comics/{{ comic.id }}/editar" method="post">
+            <div class="form-group">
+                <label for="price">Precio (USD):</label>
+                <input type="number" id="price" name="price" value="{{ comic.price }}" step="0.1" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="stock">Stock (unidades):</label>
+                <input type="number" id="stock" name="stock" value="{{ comic.stock }}" required>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="save-button">Guardar Cambios</button>
+                <a href="/inventario" class="cancel-button">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

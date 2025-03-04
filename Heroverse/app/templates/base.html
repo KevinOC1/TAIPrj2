@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HeroVerse Comics{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header style="background-image: url('/static/images/navbar-bg.png'); background-size: cover; background-position: center;">
+        <div class="logo-container">
+            <img src="/static/images/logo.png" alt="HeroVerse Comics Logo" class="logo">
+            <h1 class="site-title">HeroVerse Comics</h1>
+        </div>
+        <div class="help-icon">
+            <a href="/ayuda"><img src="/static/images/help.png" alt="Ayuda"></a>
+        </div>
+    </header>
+    
+    <div class="container">
+        <nav class="sidebar">
+            <ul>
+                <li><a href="/inventario">Inventario</a></li>
+                <li><a href="/pedidos">Pedidos</a></li>
+                <li><a href="/clientes">Clientes</a></li>
+                <li><a href="/proveedores">Proveedores</a></li>
+            </ul>
+        </nav>
+        
+        <main class="content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 HeroVerse Comics. Todos los derechos reservados.</p>
+    </footer>
+    
+    <script src="/static/js/main.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

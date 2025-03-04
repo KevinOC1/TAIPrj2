@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}HeroVerse Comics - Inventario{% endblock %}
+
+{% block content %}
+<div class="inventory-container">
+    <h2>Inventario</h2>
+    
+    <div class="comics-grid">
+        {% for comic in comics %}
+        <div class="comic-card">
+            <div class="comic-image">
+                <div class="discount-badge">-20%</div>
+                <img src="{{ comic.image_url }}" alt="{{ comic.title }}">
+            </div>
+            <div class="comic-details">
+                <p class="stock-info">Stock: {{ comic.stock }} unidades</p>
+                <p class="price-info">{{ comic.price }} USD</p>
+                <a href="/comics/{{ comic.id }}/editar" class="modify-button">Modificar</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
