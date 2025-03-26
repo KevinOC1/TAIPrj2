@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}Pedido #{{ pedido.id }}{% endblock %}
+
+{% block content %}
+<div class="view-container">
+    <h2>Detalles del Pedido #{{ pedido.id }}</h2>
+    
+    <div class="card-grid">
+        <div class="card">
+            <div class="card-header">
+                <h3>Información del Pedido</h3>
+            </div>
+            <div class="card-body">
+                <table class="info-table">
+                    <tr>
+                        <th>ID:</th>
+                        <td>#{{ pedido.id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Fecha:</th>
+                        <td>{{ pedido.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                    </tr>
+                    <tr>
+                        <th>Estado:</th>
+                        <td>
+                            <span class="status-badge status-{{ pedido.estado }}">
+                                {{ pedido.estado }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Total:</th>
+                        <td class="total-price">${{ pedido.total }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Información del Cliente</h3>
+            </div>
+            <div class="card-body">
+                <table class="info-table">
+                    <tr>
+                        <th>Nombre:</th>
+                        <td>{{ pedido.cliente.nombre }}</td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td>{{ pedido.cliente.email }}</td>
+                    </tr>
+                    {% if pedido.cliente.telefono %}
+                    <tr>
+                        <th>Teléfono:</th>
+                        <td>{{ pedido.cliente.telefono }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if pedido.cliente.direccion %}
+                    <tr>
+                        <th>Dirección:</th>
+                        <td>{{ pedido.cliente.direccion }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+                <div class="link-button-container">
+                    <a href="/clientes/{{ pedido.cliente.id }}" class="link-button">Ver detalles del cliente</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Productos</h3>
+        </div>
+        <div class="card-body">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Precio Unitario</th>
+                        <th>Cantidad</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in pedido.detalles %}
+                    <tr>
+                        <td class="product-cell">
+                            <div class="product-info">
+                                <img src="{{ detalle.comic.image_url }}" alt="{{ detalle.comic.title }}" class="product-thumbnail">
+                                <span>{{ detalle.comic.title }}</span>
+                            </div>
+                        </td>
+                        <td>${{ detalle.precio_unitario }}</td>
+                        <td>{{ detalle.cantidad }}</td>
+                        <td>${{ detalle.subtotal }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-right"><strong>Total:</strong></td>
+                        <td><strong>${{ pedido.total }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    
+    <div class="actions-container mt-4">
+        <a href="/pedidos" class="secondary-button">Volver a Pedidos</a>
+        
+        {% if pedido.estado == 'pendiente' %}
+        <div>
+            <a href="/pedidos/{{ pedido.id }}/editar" class="edit-button">Editar Pedido</a>
+            <a href="/pedidos/{{ pedido.id }}/estado?estado=completado" class="success-button">Marcar como Completado</a>
+            <a href="/pedidos/{{ pedido.id }}/estado?estado=cancelado" class="danger-button">Cancelar Pedido</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .view-container {
+        padding: 1rem;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .mt-4 {
+        margin-top: 1.5rem;
+    }
+    
+    .card-header {
+        background-color: #f5f5f5;
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .card-header h3 {
+        margin: 0;
+        color: #333;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .info-table th,
+    .info-table td {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .info-table th {
+        width: 40%;
+        text-align: left;
+        color: #666;
+    }
+    
+    .info-table tr:last-child th,
+    .info-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .data-table th {
+        background-color: #f9f9f9;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .data-table tfoot tr td {
+        border-top: 2px solid #ddd;
+        border-bottom: none;
+        padding-top: 1rem;
+    }
+    
+    .text-right {
+        text-align: right;
+    }
+    
+    .product-cell {
+        min-width: 250px;
+    }
+    
+    .product-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .product-thumbnail {
+        width: 50px;
+        height: 75px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+    
+    .status-pendiente {
+        background-color: #ffc107;
+        color: #000;
+    }
+    
+    .status-completado {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .status-cancelado {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .total-price {
+        font-weight: bold;
+        font-size: 1.1rem;
+        color: #d32f2f;
+    }
+    
+    .link-button-container {
+        margin-top: 1rem;
+    }
+    
+    .link-button {
+        display: inline-block;
+        background-color: #f0f0f0;
+        color: #333;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+    
+    .link-button:hover {
+        background-color: #e0e0e0;
+    }
+    
+    .actions-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+    }
+    
+    .actions-container > div {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .secondary-button,
+    .edit-button,
+    .success-button,
+    .danger-button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    
+    .secondary-button {
+        background-color: #f0f0f0;
+        color: #333;
+    }
+    
+    .edit-button {
+        background-color: #ff9800;
+        color: white;
+    }
+    
+    .success-button {
+        background-color: #4caf50;
+        color: white;
+    }
+    
+    .danger-button {
+        background-color: #f44336;
+        color: white;
+    }
+    
+    .secondary-button:hover,
+    .edit-button:hover,
+    .success-button:hover,
+    .danger-button:hover {
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}

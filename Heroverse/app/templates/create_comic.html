@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Nuevo Cómic{% endblock %}
+
+{% block content %}
+<div class="edit-comic-container">
+    <h2>Crear Nuevo Cómic</h2>
+    <div class="comic-edit-form">
+        <form action="/comics-crear" method="post">
+            <div class="form-group">
+                <label for="title">Título:</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="image_url">URL de la imagen:</label>
+                <input type="text" id="image_url" name="image_url" value="/static/images/comic.png" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="price">Precio (USD):</label>
+                <input type="number" id="price" name="price" step="0.1" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="stock">Stock (unidades):</label>
+                <input type="number" id="stock" name="stock" required>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="save-button">Guardar</button>
+                <a href="/inventario" class="cancel-button">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Nuevo Pedido{% endblock %}
+
+{% block extra_css %}
+<style>
+    .comic-selector {
+        margin-bottom: 1rem;
+        border: 1px solid #ddd;
+        padding: 1rem;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+    }
+    
+    .comic-details {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .comic-image-small {
+        width: 60px;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    
+    .comic-info {
+        flex: 1;
+    }
+    
+    .comic-title {
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+    }
+    
+    .comic-price {
+        color: #666;
+    }
+    
+    .quantity-selector {
+        width: 80px;
+    }
+    
+    .add-more-comics {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 1rem;
+    }
+    
+    .comics-container {
+        margin-top: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-comic-container">
+    <h2>Crear Nuevo Pedido</h2>
+    
+    {% if not clientes %}
+    <div class="empty-state">
+        <p>No hay clientes registrados.</p>
+        <p>Antes de crear un pedido, debes <a href="/clientes-crear">registrar al menos un cliente</a>.</p>
+    </div>
+    {% elif not comics %}
+    <div class="empty-state">
+        <p>No hay cómics en inventario.</p>
+        <p>Antes de crear un pedido, debes <a href="/comics-crear">añadir al menos un cómic al inventario</a>.</p>
+    </div>
+    {% else %}
+    <div class="comic-edit-form">
+        <form action="/pedidos-crear" method="post" id="pedidoForm">
+            <div class="form-group">
+                <label for="cliente">Cliente:</label>
+                <select id="cliente" name="cliente_id" required class="form-control">
+                    <option value="">Selecciona un cliente</option>
+                    {% for cliente in clientes %}
+                    <option value="{{ cliente.id }}">{{ cliente.nombre }} ({{ cliente.email }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <h3>Selecciona los cómics</h3>
+            <div id="comicsContainer" class="comics-container">
+                <div class="comic-selector">
+                    <div class="form-group">
+                        <label>Cómic:</label>
+                        <select name="comic_ids" required class="form-control comic-select">
+                            <option value="">Selecciona un cómic</option>
+                            {% for comic in comics %}
+                            <option value="{{ comic.id }}" 
+                                    data-price="{{ comic.price }}" 
+                                    data-stock="{{ comic.stock }}"
+                                    data-image="{{ comic.image_url }}">
+                                {{ comic.title }} - ${{ comic.price }} ({{ comic.stock }} disponibles)
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="comic-details" style="display: none;">
+                        <img src="" alt="Portada del cómic" class="comic-image-small">
+                        <div class="comic-info">
+                            <div class="comic-title"></div>
+                            <div class="comic-price"></div>
+                        </div>
+                        <div>
+                            <label>Cantidad:</label>
+                            <input type="number" name="cantidades" value="1" min="1" max="999" class="quantity-selector" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" id="addMoreComics" class="add-more-comics">+ Añadir más cómics</button>
+            
+            <div class="form-group" style="margin-top: 2rem;">
+                <label>Total estimado: $<span id="totalEstimado">0.00</span></label>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="save-button">Crear Pedido</button>
+                <a href="/pedidos" class="cancel-button">Cancelar</a>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Manejar la selección de cómics
+        document.body.addEventListener('change', function(e) {
+            if (e.target.classList.contains('comic-select')) {
+                const comicSelector = e.target.closest('.comic-selector');
+                const comicDetails = comicSelector.querySelector('.comic-details');
+                const selectedOption = e.target.options[e.target.selectedIndex];
+                
+                if (e.target.value) {
+                    const price = selectedOption.getAttribute('data-price');
+                    const stock = selectedOption.getAttribute('data-stock');
+                    const image = selectedOption.getAttribute('data-image');
+                    const title = selectedOption.text.split(' - ')[0];
+                    
+                    comicSelector.querySelector('.comic-image-small').src = image;
+                    comicSelector.querySelector('.comic-title').textContent = title;
+                    comicSelector.querySelector('.comic-price').textContent = `$${price} (${stock} disponibles)`;
+                    comicSelector.querySelector('.quantity-selector').max = stock;
+                    
+                    comicDetails.style.display = 'flex';
+                } else {
+                    comicDetails.style.display = 'none';
+                }
+                
+                updateTotal();
+            }
+            
+            if (e.target.classList.contains('quantity-selector')) {
+                updateTotal();
+            }
+        });
+        
+        // Añadir más cómics
+        document.getElementById('addMoreComics').addEventListener('click', function() {
+            const comicsContainer = document.getElementById('comicsContainer');
+            const comicSelector = document.querySelector('.comic-selector').cloneNode(true);
+            
+            // Resetear valores
+            const comicSelect = comicSelector.querySelector('.comic-select');
+            comicSelect.selectedIndex = 0;
+            comicSelector.querySelector('.comic-details').style.display = 'none';
+            comicSelector.querySelector('.quantity-selector').value = 1;
+            
+            comicsContainer.appendChild(comicSelector);
+        });
+        
+        // Calcular total
+        function updateTotal() {
+            let total = 0;
+            const comicSelectors = document.querySelectorAll('.comic-selector');
+            
+            comicSelectors.forEach(selector => {
+                const select = selector.querySelector('.comic-select');
+                const quantity = selector.querySelector('.quantity-selector');
+                const selectedOption = select.options[select.selectedIndex];
+                
+                if (select.value && quantity.value) {
+                    const price = parseFloat(selectedOption.getAttribute('data-price'));
+                    total += price * parseInt(quantity.value);
+                }
+            });
+            
+            document.getElementById('totalEstimado').textContent = total.toFixed(2);
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

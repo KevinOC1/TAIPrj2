@@ -8,15 +8,16 @@
 body {
     font-family: Arial, sans-serif;
     line-height: 1.6;
-    background-color: #f9e4d4; 
+    background-color: #f9e4d4; /* Fondo melocotón claro como en la imagen */
 }
 
+/* Header - Con imagen de fondo y capa roja semitransparente */
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: relative;
-    background-image: url('/static/images/fondo-navbar.jpg');
+    background-image: url('/static/images/navbar-bg.jpg');
     background-size: cover;
     background-position: center;
     color: white;
@@ -24,6 +25,7 @@ header {
     position: relative;
 }
 
+/* Capa roja semitransparente sobre la imagen */
 header::before {
     content: "";
     position: absolute;
@@ -31,10 +33,11 @@ header::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(211, 47, 47, 0.7); 
-    z-index: 0; 
+    background-color: rgba(211, 47, 47, 0.7); /* Fondo rojo con 70% de opacidad */
+    z-index: 0; /* Asegura que esté detrás del contenido */
 }
 
+/* Asegura que el contenido del header esté encima de la capa roja */
 .logo-container, .help-icon {
     position: relative;
     z-index: 1;
@@ -43,7 +46,7 @@ header::before {
 .logo-container {
     display: flex;
     align-items: center;
-    background-color: rgba(211, 47, 47, 0.85); 
+    background-color: rgba(211, 47, 47, 0.85); /* Fondo rojo semi-transparente */
     padding: 8px 15px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -57,13 +60,13 @@ header::before {
 .site-title {
     font-size: 2rem;
     font-weight: bold;
-    color: #ffeb3b; 
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); 
-    margin: 0; 
+    color: #ffeb3b; /* Texto amarillo */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* Sombra más oscura para mejor contraste */
+    margin: 0; /* Eliminar margen para mejor ajuste en el contenedor */
 }
 
 .help-icon {
-    background-color: rgba(211, 47, 47, 0.85); 
+    background-color: rgba(211, 47, 47, 0.85); /* Fondo rojo semi-transparente */
     padding: 8px;
     border-radius: 50%;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -81,12 +84,12 @@ header::before {
     min-height: calc(100vh - 140px);
 }
 
-/* Sidebar*/
+/* Sidebar - Con tu imagen de fondo */
 .sidebar {
     width: 200px;
     padding: 1rem;
     border-right: 1px solid #e0c4b0;
-    background-image: url('/static/images/fondo-navbar.jpg');
+    background-image: url('/static/images/navbar-bg.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -102,12 +105,12 @@ header::before {
 
 .sidebar ul li a {
     display: block;
-    color: #8b4513; 
+    color: #8b4513; /* Color marrón para enlaces */
     text-decoration: none;
     padding: 0.5rem;
     border-left: 3px solid transparent;
     transition: all 0.3s;
-    background-color: rgba(255, 255, 255, 0.7); 
+    background-color: rgba(255, 255, 255, 0.7); /* Fondo semi-transparente para mejorar legibilidad */
     margin-bottom: 5px;
     border-radius: 4px;
 }
@@ -117,6 +120,7 @@ header::before {
     background-color: #f0d0b0;
 }
 
+/* Contenido principal */
 .content {
     flex: 1;
     padding: 2rem;
@@ -334,4 +338,38 @@ footer {
 
 .cancel-button:hover {
     background-color: #d32f2f;
+}
+/* Estilos para tablas */
+.table-container {
+    overflow-x: auto;
+    margin-top: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.data-table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+    color: #333;
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tr:hover {
+    background-color: #f9f9f9;
 }

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Proveedor: {{ proveedor.nombre }}{% endblock %}
+
+{% block content %}
+<div class="view-container">
+    <h2>Detalles del Proveedor</h2>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3>{{ proveedor.nombre }}</h3>
+        </div>
+        <div class="card-body">
+            <table class="info-table">
+                <tr>
+                    <th>ID:</th>
+                    <td>{{ proveedor.id }}</td>
+                </tr>
+                <tr>
+                    <th>Nombre:</th>
+                    <td>{{ proveedor.nombre }}</td>
+                </tr>
+                <tr>
+                    <th>Email:</th>
+                    <td>{{ proveedor.email }}</td>
+                </tr>
+                <tr>
+                    <th>Teléfono:</th>
+                    <td>{{ proveedor.telefono or "No especificado" }}</td>
+                </tr>
+                <tr>
+                    <th>Dirección:</th>
+                    <td>{{ proveedor.direccion or "No especificada" }}</td>
+                </tr>
+                <tr>
+                    <th>Fecha de registro:</th>
+                    <td>{{ proveedor.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="card-footer">
+            <a href="/proveedores" class="secondary-button">Volver</a>
+            <a href="/proveedores/{{ proveedor.id }}/editar" class="edit-button">Editar</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .view-container {
+        padding: 1rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-top: 1.5rem;
+    }
+    
+    .card-header {
+        background-color: #f5f5f5;
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .card-header h3 {
+        margin: 0;
+        color: #333;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .card-footer {
+        padding: 1rem;
+        background-color: #f9f9f9;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .info-table th,
+    .info-table td {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .info-table th {
+        width: 30%;
+        text-align: left;
+        color: #666;
+    }
+    
+    .info-table tr:last-child th,
+    .info-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .edit-button {
+        background-color: #ff9800;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    
+    .secondary-button {
+        background-color: #f0f0f0;
+        color: #333;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    
+    .edit-button:hover, .secondary-button:hover {
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}

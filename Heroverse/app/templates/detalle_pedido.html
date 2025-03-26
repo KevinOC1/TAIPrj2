@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle de Pedido #{{ pedido.id }}{% endblock %}
+
+{% block content %}
+<div class="edit-comic-container">
+    <h2>Detalle de Pedido #{{ pedido.id }}</h2>
+    
+    <div class="order-details">
+        <div class="order-info">
+            <h3>Información del Pedido</h3>
+            <table class="info-table">
+                <tr>
+                    <th>Número de Pedido:</th>
+                    <td>#{{ pedido.id }}</td>
+                </tr>
+                <tr>
+                    <th>Fecha:</th>
+                    <td>{{ pedido.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                </tr>
+                <tr>
+                    <th>Estado:</th>
+                    <td><span class="status-badge status-{{ pedido.estado }}">{{ pedido.estado }}</span></td>
+                </tr>
+                <tr>
+                    <th>Total:</th>
+                    <td class="total-price">${{ pedido.total }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="customer-info">
+            <h3>Información del Cliente</h3>
+            <table class="info-table">
+                <tr>
+                    <th>Nombre:</th>
+                    <td>{{ pedido.cliente.nombre }}</td>
+                </tr>
+                <tr>
+                    <th>Email:</th>
+                    <td>{{ pedido.cliente.email }}</td>
+                </tr>
+                {% if pedido.cliente.telefono %}
+                <tr>
+                    <th>Teléfono:</th>
+                    <td>{{ pedido.cliente.telefono }}</td>
+                </tr>
+                {% endif %}
+                {% if pedido.cliente.direccion %}
+                <tr>
+                    <th>Dirección:</th>
+                    <td>{{ pedido.cliente.direccion }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+    
+    <h3>Productos</h3>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Precio Unitario</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in pedido.detalles %}
+                <tr>
+                    <td class="product-cell">
+                        <div class="product-info">
+                            <img src="{{ detalle.comic.image_url }}" alt="{{ detalle.comic.title }}" class="product-thumbnail">
+                            <span>{{ detalle.comic.title }}</span>
+                        </div>
+                    </td>
+                    <td>${{ detalle.precio_unitario }}</td>
+                    <td>{{ detalle.cantidad }}</td>
+                    <td>${{ detalle.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-right"><strong>Total:</strong></td>
+                    <td><strong>${{ pedido.total }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    
+    <div class="actions-row">
+        <a href="/pedidos" class="secondary-button">Volver a Pedidos</a>
+        {% if pedido.estado == 'pendiente' %}
+        <a href="/pedidos/{{ pedido.id }}/actualizar-estado?estado=completado" class="primary-button">Marcar como Completado</a>
+        <a href="/pedidos/{{ pedido.id }}/actualizar-estado?estado=cancelado" class="danger-button">Cancelar Pedido</a>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .order-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .order-info, .customer-info {
+        flex: 1;
+        min-width: 300px;
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .info-table th, .info-table td {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .info-table th {
+        text-align: left;
+        width: 40%;
+        color: #666;
+    }
+    
+    .info-table tr:last-child th, .info-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+    
+    .status-pendiente {
+        background-color: #ffc107;
+        color: #000;
+    }
+    
+    .status-completado {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .status-cancelado {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .total-price {
+        font-weight: bold;
+        font-size: 1.1rem;
+        color: #d32f2f;
+    }
+    
+    .product-cell {
+        min-width: 250px;
+    }
+    
+    .product-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .product-thumbnail {
+        width: 40px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    
+    .text-right {
+        text-align: right;
+    }
+    
+    .actions-row {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+    
+    .secondary-button, .primary-button, .danger-button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: opacity 0.3s;
+    }
+    
+    .secondary-button {
+        background-color: #f0f0f0;
+        color: #333;
+    }
+    
+    .primary-button {
+        background-color: #4caf50;
+        color: white;
+    }
+    
+    .danger-button {
+        background-color: #f44336;
+        color: white;
+    }
+    
+    .secondary-button:hover, .primary-button:hover, .danger-button:hover {
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}

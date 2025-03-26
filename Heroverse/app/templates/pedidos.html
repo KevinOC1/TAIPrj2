@@ -6,182 +6,106 @@
 <div class="orders-container">
     <h2>Pedidos</h2>
     
-    <div class="orders-controls">
-        <div class="search-box">
-            <input type="text" placeholder="Buscar pedidos..." id="orderSearch">
-            <button type="button">Buscar</button>
-        </div>
-        <div class="filter-options">
-            <select id="statusFilter">
-                <option value="">Todos los estados</option>
-                <option value="Pendiente">Pendiente</option>
-                <option value="En proceso">En proceso</option>
-                <option value="Entregado">Entregado</option>
-                <option value="Cancelado">Cancelado</option>
-            </select>
-        </div>
+    <div class="actions-container">
+        <a href="/pedidos-crear" class="add-button">Crear Nuevo Pedido</a>
     </div>
     
-    <div class="orders-table-container">
-        <table class="orders-table">
+    {% if pedidos %}
+    <div class="table-container">
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Cliente</th>
-                    <th>Productos</th>
                     <th>Fecha</th>
-                    <th>Total</th>
                     <th>Estado</th>
+                    <th>Total</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                {% for order in orders %}
-                <tr class="order-row status-{{ order.status|lower|replace(' ', '-') }}">
-                    <td class="order-id">#{{ order.id }}</td>
-                    <td class="customer-name">{{ order.customer_name }}</td>
-                    <td class="products-list">
-                        <ul>
-                            {% for product in order.products %}
-                            <li>{{ product }}</li>
-                            {% endfor %}
-                        </ul>
+                {% for pedido in pedidos %}
+                <tr>
+                    <td>{{ pedido.id }}</td>
+                    <td>{{ pedido.cliente.nombre }}</td>
+                    <td>{{ pedido.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>
+                        <span class="status-badge status-{{ pedido.estado }}">
+                            {{ pedido.estado }}
+                        </span>
                     </td>
-                    <td class="order-date">{{ order.date }}</td>
-                    <td class="order-total">${{ order.total }}</td>
-                    <td class="order-status">
-                        <span class="status-badge status-{{ order.status|lower|replace(' ', '-') }}">{{ order.status }}</span>
-                    </td>
-                    <td class="order-actions">
-                        <a href="/pedidos/{{ order.id }}" class="view-button">Ver</a>
-                        <a href="/pedidos/{{ order.id }}/editar" class="edit-button">Editar</a>
+                    <td>${{ pedido.total }}</td>
+                    <td class="actions">
+                        <a href="/pedidos/{{ pedido.id }}" class="view-button">Ver</a>
+                        <a href="/pedidos/{{ pedido.id }}/editar" class="edit-button">Editar</a>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No hay pedidos registrados aún.</p>
+        <p>Crea tu primer pedido haciendo clic en el botón "Crear Nuevo Pedido".</p>
+    </div>
+    {% endif %}
 </div>
 
 <style>
     .orders-container {
-        padding: 20px;
-    }
-    
-    .orders-controls {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 20px;
-    }
-    
-    .search-box {
-        display: flex;
-        gap: 10px;
-    }
-    
-    .search-box input {
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        width: 250px;
-    }
-    
-    .search-box button, .filter-options select {
-        padding: 8px 15px;
-        background-color: #d32f2f;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    
-    .filter-options select {
-        background-color: white;
-        color: #333;
-        border: 1px solid #ddd;
-    }
-    
-    .orders-table-container {
-        overflow-x: auto;
-    }
-    
-    .orders-table {
-        width: 100%;
-        border-collapse: collapse;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        background-color: white;
-    }
-    
-    .orders-table th, .orders-table td {
-        padding: 12px 15px;
-        text-align: left;
-        border-bottom: 1px solid #eee;
-    }
-    
-    .orders-table th {
-        background-color: #d32f2f;
-        color: white;
-        font-weight: bold;
-    }
-    
-    .orders-table tbody tr:hover {
-        background-color: #f9f9f9;
-    }
-    
-    .products-list ul {
-        margin: 0;
-        padding-left: 20px;
+        padding: 1rem;
     }
     
     .status-badge {
         display: inline-block;
-        padding: 5px 10px;
+        padding: 0.25rem 0.75rem;
         border-radius: 20px;
-        font-size: 0.85em;
+        font-size: 0.85rem;
         font-weight: bold;
     }
     
-    .status-entregado {
-        background-color: #4CAF50;
-        color: white;
-    }
-    
-    .status-en-proceso {
-        background-color: #2196F3;
-        color: white;
-    }
-    
     .status-pendiente {
-        background-color: #FF9800;
+        background-color: #ffc107;
+        color: #000;
+    }
+    
+    .status-completado {
+        background-color: #28a745;
         color: white;
     }
     
     .status-cancelado {
-        background-color: #F44336;
+        background-color: #dc3545;
         color: white;
     }
     
-    .order-actions {
+    .actions {
         display: flex;
-        gap: 8px;
+        gap: 0.5rem;
     }
     
     .view-button, .edit-button {
-        display: inline-block;
-        padding: 5px 10px;
-        background-color: #d32f2f;
-        color: white;
-        text-decoration: none;
+        padding: 0.4rem 0.8rem;
         border-radius: 4px;
-        font-size: 0.85em;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 0.9rem;
+        display: inline-block;
+    }
+    
+    .view-button {
+        background-color: #2196f3;
+        color: white;
     }
     
     .edit-button {
-        background-color: #FF9800;
+        background-color: #ff9800;
+        color: white;
+    }
+    
+    .view-button:hover, .edit-button:hover {
+        opacity: 0.9;
     }
 </style>
-
-{% block extra_js %}
-<script src="/static/js/pedidos.js"></script>
-{% endblock %}
 {% endblock %}

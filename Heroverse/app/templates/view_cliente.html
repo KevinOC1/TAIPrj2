@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Cliente: {{ cliente.nombre }}{% endblock %}
+
+{% block content %}
+<div class="view-container">
+    <h2>Detalles del Cliente</h2>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3>{{ cliente.nombre }}</h3>
+        </div>
+        <div class="card-body">
+            <table class="info-table">
+                <tr>
+                    <th>ID:</th>
+                    <td>{{ cliente.id }}</td>
+                </tr>
+                <tr>
+                    <th>Nombre:</th>
+                    <td>{{ cliente.nombre }}</td>
+                </tr>
+                <tr>
+                    <th>Email:</th>
+                    <td>{{ cliente.email }}</td>
+                </tr>
+                <tr>
+                    <th>Teléfono:</th>
+                    <td>{{ cliente.telefono or "No especificado" }}</td>
+                </tr>
+                <tr>
+                    <th>Dirección:</th>
+                    <td>{{ cliente.direccion or "No especificada" }}</td>
+                </tr>
+                <tr>
+                    <th>Fecha de registro:</th>
+                    <td>{{ cliente.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="card-footer">
+            <a href="/clientes" class="secondary-button">Volver</a>
+            <a href="/clientes/{{ cliente.id }}/editar" class="edit-button">Editar</a>
+        </div>
+    </div>
+    
+    {% if cliente.pedidos %}
+    <div class="section">
+        <h3>Historial de Pedidos</h3>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido in cliente.pedidos %}
+                    <tr>
+                        <td>#{{ pedido.id }}</td>
+                        <td>{{ pedido.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>
+                            <span class="status-badge status-{{ pedido.estado }}">
+                                {{ pedido.estado }}
+                            </span>
+                        </td>
+                        <td>${{ pedido.total }}</td>
+                        <td class="actions">
+                            <a href="/pedidos/{{ pedido.id }}" class="view-button">Ver</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>Este cliente no tiene pedidos registrados.</p>
+        <a href="/pedidos-crear" class="primary-button">Crear Nuevo Pedido</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .view-container {
+        padding: 1rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-top: 1.5rem;
+    }
+    
+    .card-header {
+        background-color: #f5f5f5;
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .card-header h3 {
+        margin: 0;
+        color: #333;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .card-footer {
+        padding: 1rem;
+        background-color: #f9f9f9;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .info-table th,
+    .info-table td {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .info-table th {
+        width: 30%;
+        text-align: left;
+        color: #666;
+    }
+    
+    .info-table tr:last-child th,
+    .info-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .section {
+        margin-top: 2rem;
+    }
+    
+    .section h3 {
+        margin-bottom: 1rem;
+        color: #333;
+    }
+    
+    .table-container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .data-table th, .data-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .data-table th {
+        background-color: #f5f5f5;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .data-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .empty-state {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        text-align: center;
+        margin-top: 2rem;
+    }
+    
+    .empty-state p {
+        margin-bottom: 1rem;
+        color: #666;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+    
+    .status-pendiente {
+        background-color: #ffc107;
+        color: #000;
+    }
+    
+    .status-completado {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .status-cancelado {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .edit-button {
+        background-color: #ff9800;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    
+    .secondary-button {
+        background-color: #f0f0f0;
+        color: #333;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    
+    .primary-button {
+        background-color: #4caf50;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+        display: inline-block;
+    }
+    
+    .view-button {
+        background-color: #2196f3;
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 0.9rem;
+        display: inline-block;
+    }
+    
+    .edit-button:hover, 
+    .secondary-button:hover, 
+    .primary-button:hover,
+    .view-button:hover {
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}

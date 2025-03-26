@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Pedido #{{ pedido.id }}{% endblock %}
+
+{% block content %}
+<div class="edit-container">
+    <h2>Editar Pedido #{{ pedido.id }}</h2>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3>Información del Pedido</h3>
+        </div>
+        <div class="card-body">
+            <form action="/pedidos/{{ pedido.id }}/editar" method="post">
+                <div class="form-group">
+                    <label for="estado">Estado:</label>
+                    <select id="estado" name="estado" class="form-control">
+                        <option value="pendiente" {% if pedido.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                        <option value="completado" {% if pedido.estado == 'completado' %}selected{% endif %}>Completado</option>
+                        <option value="cancelado" {% if pedido.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                    </select>
+                </div>
+                
+                <div class="info-section">
+                    <h4>Información del Cliente</h4>
+                    <p><strong>Nombre:</strong> {{ pedido.cliente.nombre }}</p>
+                    <p><strong>Email:</strong> {{ pedido.cliente.email }}</p>
+                    {% if pedido.cliente.telefono %}
+                    <p><strong>Teléfono:</strong> {{ pedido.cliente.telefono }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="info-section">
+                    <h4>Productos</h4>
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Precio Unitario</th>
+                                <th>Cantidad</th>
+                                <th>Subtotal</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detalle in pedido.detalles %}
+                            <tr>
+                                <td class="product-cell">
+                                    <div class="product-info">
+                                        <img src="{{ detalle.comic.image_url }}" alt="{{ detalle.comic.title }}" class="product-thumbnail">
+                                        <span>{{ detalle.comic.title }}</span>
+                                    </div>
+                                </td>
+                                <td>${{ detalle.precio_unitario }}</td>
+                                <td>
+                                    <input type="number" name="cantidades[]" value="{{ detalle.cantidad }}" min="1" max="{{ detalle.comic.stock + detalle.cantidad }}" class="quantity-input">
+                                    <input type="hidden" name="detalle_ids[]" value="{{ detalle.id }}">
+                                </td>
+                                <td>${{ detalle.subtotal }}</td>
+                                <td>
+                                    <a href="/pedidos/{{ pedido.id }}/detalles/{{ detalle.id }}/eliminar" class="remove-button" onclick="return confirm('¿Estás seguro de eliminar este producto?')">Eliminar</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-right"><strong>Total:</strong></td>
+                                <td colspan="2"><strong>${{ pedido.total }}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <div class="add-item-section">
+                    <h4>Agregar Producto</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="comic_id">Producto:</label>
+                            <select id="comic_id" name="comic_id" class="form-control">
+                                <option value="">Seleccionar producto</option>
+                                {% for comic in comics %}
+                                <option value="{{ comic.id }}" data-stock="{{ comic.stock }}" data-price="{{ comic.price }}">
+                                    {{ comic.title }} - ${{ comic.price }} ({{ comic.stock }} disponibles)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="cantidad">Cantidad:</label>
+                            <input type="number" id="cantidad" name="cantidad" min="1" value="1" class="form-control quantity-input">
+                        </div>
+                        <button type="button" id="add-item" class="add-button">Agregar</button>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="save-button">Guardar Cambios</button>
+                    <a href="/pedidos/{{ pedido.id }}" class="cancel-button">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .edit-container {
+        padding: 1rem;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-top: 1.5rem;
+    }
+    
+    .card-header {
+        background-color: #f5f5f5;
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .card-header h3 {
+        margin: 0;
+        color: #333;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+        color: #555;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+    
+    .info-section {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #eee;
+    }
+    
+    .info-section h4 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+    
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    
+    .items-table th,
+    .items-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .items-table th {
+        background-color: #f9f9f9;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .items-table tfoot tr td {
+        border-top: 2px solid #ddd;
+        border-bottom: none;
+        padding-top: 1rem;
+    }
+    
+    .text-right {
+        text-align: right;
+    }
+    
+    .product-cell {
+        min-width: 200px;
+    }
+    
+    .product-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .product-thumbnail {
+        width: 40px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    
+    .quantity-input {
+        width: 70px;
+        padding: 0.4rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        text-align: center;
+    }
+    
+    .remove-button {
+        background-color: #f44336;
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+    
+    .remove-button:hover {
+        opacity: 0.9;
+    }
+    
+    .add-item-section {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+    }
+    
+    .form-row {
+        display: flex;
+        align-items: flex-end;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .form-row .form-group {
+        flex: 1;
+        min-width: 200px;
+        margin-bottom: 0;
+    }
+    
+    .add-button {
+        background-color: #4caf50;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+    }
+    
+    .save-button {
+        background-color: #4caf50;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .cancel-button {
+        background-color: #f44336;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+    
+    .save-button:hover, 
+    .cancel-button:hover, 
+    .add-button:hover {
+        opacity: 0.9;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Actualizar subtotales cuando cambia la cantidad
+        const quantityInputs = document.querySelectorAll('.quantity-input');
+        quantityInputs.forEach(input => {
+            input.addEventListener('change', updateTotal);
+        });
+        
+        // Agregar nuevo producto al pedido
+        document.getElementById('add-item').addEventListener('click', function() {
+            const comicSelect = document.getElementById('comic_id');
+            const cantidad = document.getElementById('cantidad');
+            
+            if (comicSelect.value && cantidad.value > 0) {
+                // Aquí podríamos agregar lógica para añadir el producto a la tabla
+                // o enviar un formulario separado para añadir el producto
+                
+                // Para esta demo, simplemente enviamos el formulario
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/pedidos/${pedido.id}/agregar-producto`;
+                
+                const comicIdInput = document.createElement('input');
+                comicIdInput.type = 'hidden';
+                comicIdInput.name = 'comic_id';
+                comicIdInput.value = comicSelect.value;
+                
+                const cantidadInput = document.createElement('input');
+                cantidadInput.type = 'hidden';
+                cantidadInput.name = 'cantidad';
+                cantidadInput.value = cantidad.value;
+                
+                form.appendChild(comicIdInput);
+                form.appendChild(cantidadInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+        
+        function updateTotal() {
+
+            console.log('Actualizar total');
+        }
+    });
+</script>
+{% endblock %}

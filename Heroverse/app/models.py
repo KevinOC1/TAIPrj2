@@ -1,66 +1,92 @@
-class Comic:
-    def __init__(self, id, title, image_url, price, stock):
-        self.id = id
-        self.title = title
-        self.image_url = image_url
-        self.price = price
-        self.stock = stock
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, DateTime
+from sqlalchemy.orm import relationship
+import datetime
 
-class Order:
-    def __init__(self, id, customer_name, products, date, total, status):
-        self.id = id
-        self.customer_name = customer_name
-        self.products = products
-        self.date = date
-        self.total = total
-        self.status = status
+from .database import Base
 
-# Datos de ejemplo para los cómics
-comics_db = [
-    Comic(1, "Dragon Ball Super Vol. 1", "/static/images/comic.png", 50.8, 52),
-    Comic(2, "Dragon Ball Super Vol. 2", "/static/images/comic.png", 50.8, 52),
-    Comic(3, "Dragon Ball Super Vol. 3", "/static/images/comic.png", 50.8, 52),
-    Comic(4, "Dragon Ball Super Vol. 4", "/static/images/comic.png", 50.8, 52),
-    Comic(5, "Dragon Ball Super Vol. 5", "/static/images/comic.png", 50.8, 52),
-    Comic(6, "Dragon Ball Super Vol. 6", "/static/images/comic.png", 50.8, 52),
-    Comic(7, "Dragon Ball Super Vol. 7", "/static/images/comic.png", 50.8, 52),
-    Comic(8, "Dragon Ball Super Vol. 8", "/static/images/comic.png", 50.8, 52),
-]
+class Comic(Base):
+    __tablename__ = "comics"
 
-# Funciones para manipular datos
-def get_all_comics():
-    return comics_db
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    image_url = Column(String)
+    price = Column(Float)
+    stock = Column(Integer)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
-def get_comic_by_id(comic_id):
-    for comic in comics_db:
-        if comic.id == comic_id:
-            return comic
-    return None
+class Cliente(Base):
+    __tablename__ = "clientes"
 
-def update_comic(comic_id, price=None, stock=None):
-    comic = get_comic_by_id(comic_id)
-    if comic:
-        if price is not None:
-            comic.price = price
-        if stock is not None:
-            comic.stock = stock
-        return True
-    return False
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String, index=True)
+    email = Column(String, unique=True, index=True)
+    telefono = Column(String)
+    direccion = Column(String)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-# Datos de ejemplo para los pedidos
-orders_db = [
-    Order(1, "Juan Pérez", ["Dragon Ball Super Vol. 1", "Dragon Ball Super Vol. 2"], "2023-05-15", 101.6, "Entregado"),
-    Order(2, "María González", ["Dragon Ball Super Vol. 3"], "2023-05-18", 50.8, "En proceso"),
-    Order(3, "Carlos Rodríguez", ["Dragon Ball Super Vol. 4", "Dragon Ball Super Vol. 5", "Dragon Ball Super Vol. 6"], "2023-05-20", 152.4, "Pendiente"),
-    Order(4, "Ana López", ["Dragon Ball Super Vol. 7"], "2023-05-22", 50.8, "Cancelado"),
-    Order(5, "Roberto Martínez", ["Dragon Ball Super Vol. 8", "Dragon Ball Super Vol. 1"], "2023-05-25", 101.6, "Entregado"),
-]
+class Proveedor(Base):
+    __tablename__ = "proveedores"
 
-def get_all_orders():
-    return orders_db
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String, index=True)
+    email = Column(String, index=True)
+    telefono = Column(String)
+    direccion = Column(String)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-def get_order_by_id(order_id):
-    for order in orders_db:
-        if order.id == order_id:
-            return order
-    return None
+class Pedido(Base):
+    __tablename__ = "pedidos"
+
+    id = Column(Integer, primary_key=True, index=True)
+    cliente_id = Column(Integer, ForeignKey("clientes.id"))
+    fecha = Column(DateTime, default=datetime.datetime.utcnow)
+    estado = Column(String, default="pendiente")
+    total = Column(Float, default=0.0)
+    
+    # Relación con el cliente
+    cliente = relationship("Cliente", back_populates="pedidos")
+    # Relación con los detalles del pedido
+    detalles = relationship("DetallePedido", back_populates="pedido")
+
+# Añadimos la relación en la clase Cliente
+Cliente.pedidos = relationship("Pedido", back_populates="cliente")
+
+class DetallePedido(Base):
+    __tablename__ = "detalles_pedido"
+
+    id = Column(Integer, primary_key=True, index=True)
+    pedido_id = Column(Integer, ForeignKey("pedidos.id"))
+    comic_id = Column(Integer, ForeignKey("comics.id"))
+    cantidad = Column(Integer)
+    precio_unitario = Column(Float)
+    
+    # Relaciones
+    pedido = relationship("Pedido", back_populates="detalles")
+    comic = relationship("Comic")
+    
+    @property
+    def subtotal(self):
+        return self.cantidad * self.precio_unitario
+
+# Datos iniciales para cómics 
+def init_db(db):
+    # Verificar si ya hay cómics en la base de datos
+    comics_count = db.query(Comic).count()
+    if comics_count == 0:
+        comics_data = [
+            {"title": "Dragon Ball Super Vol. 1", "image_url": "/static/images/comic.png", "price": 50.8, "stock": 52},
+            {"title": "Dragon Ball Super Vol. 2", "image_url": "/static/images/comic.png", "price": 50.8, "stock": 52},
+            {"title": "Dragon Ball Super Vol. 3", "image_url": "/static/images/comic.png", "price": 50.8, "stock": 52},
+            {"title": "Dragon Ball Super Vol. 4", "image_url": "/static/images/comic.png", "price": 50.8, "stock": 52},
+            {"title": "Dragon Ball Super Vol. 5", "image_url": "/static/images/comic.png", "price": 50.8, "stock": 52},
+            {"title": "Dragon Ball Super Vol. 6", "image_url": "/static/images/comic.png", "price": 50.8, "stock": 52},
+            {"title": "Dragon Ball Super Vol. 7", "image_url": "/static/images/comic.png", "price": 50.8, "stock": 52},
+            {"title": "Dragon Ball Super Vol. 8", "image_url": "/static/images/comic.png", "price": 50.8, "stock": 52},
+        ]
+        
+        for comic_data in comics_data:
+            comic = Comic(**comic_data)
+            db.add(comic)
+        
+        db.commit()
