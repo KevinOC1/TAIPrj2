@@ -49,7 +49,8 @@ async def update_comic(
 
 @router.get("/pedidos", response_class=HTMLResponse)
 async def get_orders(request: Request):
-    return templates.TemplateResponse("pedidos.html", {"request": request})
+    orders = models.get_all_orders()
+    return templates.TemplateResponse("pedidos.html", {"request": request, "orders": orders})
 
 @router.get("/clientes", response_class=HTMLResponse)
 async def get_clients(request: Request):

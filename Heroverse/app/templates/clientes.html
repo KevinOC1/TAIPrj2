@@ -4,8 +4,133 @@
 
 {% block content %}
 <div class="clients-container">
-    <h2>Clientes</h2>
-    <p>Aquí se mostrará la lista de clientes.</p>
-    <!-- Contenido de clientes se agregará en el futuro -->
+    <h2>Gestión de Clientes</h2>
+    
+    <div class="search-bar">
+        <input type="text" placeholder="Buscar cliente..." id="searchClient">
+        <button class="add-button">Agregar Cliente</button>
+    </div>
+
+    <div class="clients-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Total Pedidos</th>
+                    <th>Último Pedido</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Juan Pérez</td>
+                    <td>juan.perez@email.com</td>
+                    <td>555-0123</td>
+                    <td>2</td>
+                    <td>2023-05-15</td>
+                    <td>
+                        <button class="view-button">Ver</button>
+                        <button class="edit-button">Editar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>María González</td>
+                    <td>maria.gonzalez@email.com</td>
+                    <td>555-0124</td>
+                    <td>1</td>
+                    <td>2023-05-18</td>
+                    <td>
+                        <button class="view-button">Ver</button>
+                        <button class="edit-button">Editar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>Carlos Rodríguez</td>
+                    <td>carlos.rodriguez@email.com</td>
+                    <td>555-0125</td>
+                    <td>3</td>
+                    <td>2023-05-20</td>
+                    <td>
+                        <button class="view-button">Ver</button>
+                        <button class="edit-button">Editar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
+
+<style>
+.clients-container {
+    padding: 20px;
+}
+
+.search-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.search-bar input {
+    width: 300px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.add-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.clients-table table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+tr:hover {
+    background-color: #f9f9f9;
+}
+
+.view-button, .edit-button {
+    padding: 6px 12px;
+    margin: 0 4px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.view-button {
+    background-color: #2196F3;
+    color: white;
+}
+
+.edit-button {
+    background-color: #FFC107;
+    color: white;
+}
+</style>
 {% endblock %}

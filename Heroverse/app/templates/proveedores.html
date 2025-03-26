@@ -3,9 +3,138 @@
 {% block title %}HeroVerse Comics - Proveedores{% endblock %}
 
 {% block content %}
-<div class="providers-container">
-    <h2>Proveedores</h2>
-    <p>Aquí se mostrará la lista de proveedores.</p>
-    <!-- Contenido de proveedores se agregará en el futuro -->
+<div class="suppliers-container">
+    <h2>Gestión de Proveedores</h2>
+    
+    <div class="search-bar">
+        <input type="text" placeholder="Buscar proveedor..." id="searchSupplier">
+        <button class="add-button">Agregar Proveedor</button>
+    </div>
+
+    <div class="suppliers-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Empresa</th>
+                    <th>Contacto</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Productos</th>
+                    <th>Última Entrega</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Comics Distribuidora SA</td>
+                    <td>Roberto Sánchez</td>
+                    <td>roberto@comicsdist.com</td>
+                    <td>555-9876</td>
+                    <td>Dragon Ball, Naruto</td>
+                    <td>2023-05-10</td>
+                    <td>
+                        <button class="view-button">Ver</button>
+                        <button class="edit-button">Editar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Manga Express</td>
+                    <td>Ana Torres</td>
+                    <td>ana@mangaexpress.com</td>
+                    <td>555-8765</td>
+                    <td>One Piece, My Hero Academia</td>
+                    <td>2023-05-12</td>
+                    <td>
+                        <button class="view-button">Ver</button>
+                        <button class="edit-button">Editar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>Global Comics Inc</td>
+                    <td>Luis Ramírez</td>
+                    <td>luis@globalcomics.com</td>
+                    <td>555-7654</td>
+                    <td>Death Note, Attack on Titan</td>
+                    <td>2023-05-15</td>
+                    <td>
+                        <button class="view-button">Ver</button>
+                        <button class="edit-button">Editar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
+
+<style>
+.suppliers-container {
+    padding: 20px;
+}
+
+.search-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.search-bar input {
+    width: 300px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.add-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.suppliers-table table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+tr:hover {
+    background-color: #f9f9f9;
+}
+
+.view-button, .edit-button {
+    padding: 6px 12px;
+    margin: 0 4px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.view-button {
+    background-color: #2196F3;
+    color: white;
+}
+
+.edit-button {
+    background-color: #FFC107;
+    color: white;
+}
+</style>
 {% endblock %}
