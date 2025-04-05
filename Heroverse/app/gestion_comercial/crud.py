@@ -170,3 +170,32 @@ def generar_informe_stock_critico(db: Session):
     )
     
     return comics_stock_critico
+
+
+
+#cliente frecuente
+def crear_cliente_frecuente(db: Session, cliente_data: dict):
+    """
+    Crear un nuevo cliente frecuente
+    :param db: Sesión de base de datos
+    :param cliente_data: Diccionario con datos del cliente
+    :return: Nuevo cliente creado
+    """
+    # Validar que el email no esté duplicado
+    existing_cliente = db.query(models.Cliente).filter(models.Cliente.email == cliente_data['email']).first()
+    if existing_cliente:
+        raise ValueError("Ya existe un cliente con este correo electrónico")
+    
+    # Crear nuevo cliente
+    nuevo_cliente = models.Cliente(
+        nombre=cliente_data['nombre'],
+        email=cliente_data['email'],
+        telefono=cliente_data.get('telefono'),
+        # Otros campos según tu modelo
+    )
+    
+    db.add(nuevo_cliente)
+    db.commit()
+    db.refresh(nuevo_cliente)
+    
+    return nuevo_cliente

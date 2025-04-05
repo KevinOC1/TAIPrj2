@@ -4,6 +4,9 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
+from datetime import date
+import logging
+
 
 from app.database import get_db
 from app import models, schemas, crud
@@ -515,8 +518,82 @@ async def guardar_limites_stock_global(
 
 @router.get("/stock/critico", response_class=HTMLResponse)
 async def informe_stock_critico(request: Request, db: Session = Depends(get_db)):
-    comics_stock_critico = crud.generar_informe_stock_critico(db)
-    return templates.TemplateResponse(
+        comics_stock_critico = crud.generar_informe_stock_critico(db)
+        return templates.TemplateResponse(
         "stock_critico.html", 
         {"request": request, "comics": comics_stock_critico}
+    )
+    
+    
+@router.get("/gestion/clientes-frecuentes/nuevo", response_class=HTMLResponse)
+async def nuevo_cliente_frecuente_form(request: Request):
+    return templates.TemplateResponse(
+        "nuevo_cliente_frecuente.html", 
+        {"request": request}
+    )
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@router.post("/gestion/clientes-frecuentes/nuevo")
+async def crear_cliente_frecuente(
+    request: Request,
+    nombre: str = Form(...),
+    email: str = Form(...),
+    telefono: Optional[str] = Form(None),
+    fecha_nacimiento: Optional[str] = Form(None),  # Change to string first
+    nivel: Optional[str] = Form("bronze"),
+    puntos_iniciales: Optional[int] = Form(0),
+    notas: Optional[str] = Form(None),
+    newsletter: Optional[bool] = Form(False),
+    promociones: Optional[bool] = Form(False),
+    generos: Optional[List[str]] = Form(None),
+    db: Session = Depends(get_db)
+):
+    try:
+        # Parse fecha_nacimiento if provided
+        parsed_fecha_nacimiento = None
+        if fecha_nacimiento:
+            try:
+                parsed_fecha_nacimiento = date.fromisoformat(fecha_nacimiento)
+            except ValueError:
+                # Log the error but don't stop processing
+                logger.warning(f"Invalid date format: {fecha_nacimiento}")
+
+        # Log form data for debugging
+        logger.info(f"Received form data: {await request.form()}")
+
+        cliente_data = {
+            "nombre": nombre,
+            "email": email,
+            "telefono": telefono,
+            "fecha_nacimiento": parsed_fecha_nacimiento,
+            "nivel": nivel,
+            "puntos": puntos_iniciales,
+            "notas": notas,
+            "newsletter": newsletter,
+            "promociones": promociones,
+            "generos_interes": generos
+        }
+        
+        nuevo_cliente = crud.crear_cliente_frecuente(db, cliente_data)
+        
+        return RedirectResponse(url="/gestion/clientes-frecuentes", status_code=303)
+    except Exception as e:
+        # Log the full error
+        logger.error(f"Error creating frequent customer: {e}", exc_info=True)
+        
+        # Return to the form with an error message
+        return templates.TemplateResponse("nuevo_cliente_frecuente.html", {
+            "request": request, 
+            "error": str(e)
+        })
+
+# Add a GET route to render the form
+@router.get("/gestion/clientes-frecuentes/nuevo", response_class=HTMLResponse)
+async def nuevo_cliente_frecuente_form(request: Request):
+    return templates.TemplateResponse(
+        "nuevo_cliente_frecuente.html", 
+        {"request": request}
     )
