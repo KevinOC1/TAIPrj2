@@ -1,7 +1,6 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, DateTime
 from sqlalchemy.orm import relationship
-import datetime
-
+from datetime import datetime, timezone
 from .database import Base
 
 class Comic(Base):
@@ -12,8 +11,8 @@ class Comic(Base):
     image_url = Column(String)
     price = Column(Float)
     stock = Column(Integer)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     limite_minimo = Column(Integer, nullable=True, default=10)  
 
 
@@ -23,12 +22,24 @@ class Cliente(Base):
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, index=True)
     email = Column(String, unique=True, index=True)
-    telefono = Column(String)
-    direccion = Column(String)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    telefono = Column(String, nullable=True)
+    direccion = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Campos adicionales para clientes frecuentes
+    fecha_nacimiento = Column(DateTime, nullable=True)
+    nivel = Column(String, nullable=True, default="bronze")
+    puntos = Column(Integer, nullable=True, default=0)
+    notas = Column(String, nullable=True)
+    newsletter = Column(Boolean, nullable=True, default=False)
+    promociones = Column(Boolean, nullable=True, default=False)
+    generos_interes = Column(String, nullable=True)  # Guardar como string separado por comas
     
     # Relación con pedidos
     pedidos = relationship("Pedido", back_populates="cliente")
+    
+    cambios_nivel = relationship("CambioNivel", back_populates="cliente")
+
 
 class Proveedor(Base):
     __tablename__ = "proveedores"
@@ -38,14 +49,14 @@ class Proveedor(Base):
     email = Column(String, index=True)
     telefono = Column(String)
     direccion = Column(String)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 class Pedido(Base):
     __tablename__ = "pedidos"
 
     id = Column(Integer, primary_key=True, index=True)
     cliente_id = Column(Integer, ForeignKey("clientes.id"))
-    fecha = Column(DateTime, default=datetime.datetime.utcnow)
+    fecha = Column(DateTime, default=datetime.utcnow)
     estado = Column(String, default="pendiente")
     total = Column(Float, default=0.0)
     
@@ -80,11 +91,13 @@ class MovimientoStock(Base):
     tipo = Column(String)  # 'entrada' o 'salida'
     razon = Column(String, nullable=True)
     proveedor_id = Column(Integer, ForeignKey("proveedores.id"), nullable=True)
-    fecha = Column(DateTime, default=datetime.datetime.utcnow)
+    fecha = Column(DateTime, default=datetime.utcnow)
 
     # Relaciones
     comic = relationship("Comic")
     proveedor = relationship("Proveedor")  # Remove 'nullable=True'
+
+# Resto del código permanece igual
 # Datos iniciales para cómics 
 def init_db(db):
     # Verificar si ya hay cómics en la base de datos
@@ -106,3 +119,17 @@ def init_db(db):
             db.add(comic)
         
         db.commit()
+        
+        
+class CambioNivel(Base):
+    __tablename__ = "cambios_nivel"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    cliente_id = Column(Integer, ForeignKey('clientes.id'))
+    nivel_anterior = Column(String)
+    nivel_nuevo = Column(String)
+    motivo = Column(String)
+    comentarios = Column(String, nullable=True)
+    fecha = Column(DateTime, default=datetime.now(timezone.utc))  # Updated default
+    
+    cliente = relationship("Cliente", back_populates="cambios_nivel")

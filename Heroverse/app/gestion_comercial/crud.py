@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from . import models, schemas
+from app import models, schemas
 from typing import Optional
 def delete_detalle_pedido(db: Session, detalle_id: int):
     db_detalle = db.query(models.DetallePedido).filter(models.DetallePedido.id == detalle_id).first()
@@ -186,16 +186,56 @@ def crear_cliente_frecuente(db: Session, cliente_data: dict):
     if existing_cliente:
         raise ValueError("Ya existe un cliente con este correo electrónico")
     
-    # Crear nuevo cliente
+    # Extraer los campos base que sabemos que existen en el modelo Cliente
     nuevo_cliente = models.Cliente(
         nombre=cliente_data['nombre'],
         email=cliente_data['email'],
-        telefono=cliente_data.get('telefono'),
-        # Otros campos según tu modelo
+        telefono=cliente_data.get('telefono')
     )
+    
+    # Agregar campos adicionales si existen en el modelo
+    if hasattr(models.Cliente, 'fecha_nacimiento') and cliente_data.get('fecha_nacimiento'):
+        nuevo_cliente.fecha_nacimiento = cliente_data['fecha_nacimiento']
+    
+    if hasattr(models.Cliente, 'nivel') and cliente_data.get('nivel'):
+        nuevo_cliente.nivel = cliente_data['nivel']
+    
+    if hasattr(models.Cliente, 'puntos') and cliente_data.get('puntos'):
+        nuevo_cliente.puntos = cliente_data['puntos']
+    
+    if hasattr(models.Cliente, 'notas') and cliente_data.get('notas'):
+        nuevo_cliente.notas = cliente_data['notas']
+    
+    if hasattr(models.Cliente, 'newsletter') and 'newsletter' in cliente_data:
+        nuevo_cliente.newsletter = cliente_data['newsletter']
+    
+    if hasattr(models.Cliente, 'promociones') and 'promociones' in cliente_data:
+        nuevo_cliente.promociones = cliente_data['promociones']
+    
+    if hasattr(models.Cliente, 'generos_interes') and cliente_data.get('generos_interes'):
+        nuevo_cliente.generos_interes = cliente_data['generos_interes']
     
     db.add(nuevo_cliente)
     db.commit()
     db.refresh(nuevo_cliente)
     
     return nuevo_cliente
+
+def obtener_nivel_cliente(db: Session, cliente_id: int):
+    """
+    Obtener el nivel actual de un cliente
+    """
+    cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
+    return cliente.nivel if cliente else None
+
+def actualizar_nivel_cliente(db: Session, cliente_id: int, nuevo_nivel: str):
+    """
+    Actualizar el nivel de un cliente
+    """
+    cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
+    if cliente:
+        cliente.nivel = nuevo_nivel
+        db.commit()
+        db.refresh(cliente)
+        return cliente
+    return None

@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block title %}Historial de Cliente - {{ cliente.nombre }}{% endblock %}
+
+{% block content %}
+<div class="view-container">
+    <h2>Historial de Cliente</h2>
+    
+    <div class="client-info-card">
+        <div class="card-header">
+            <h3>{{ cliente.nombre }}</h3>
+            <span class="level-badge level-{{ nivel }}">{{ nivel|capitalize }}</span>
+        </div>
+        <div class="card-body">
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value">{{ cliente.email }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Puntos acumulados:</span>
+                <span class="info-value">{{ puntos }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Desde:</span>
+                <span class="info-value">{{ cliente.created_at.strftime('%d/%m/%Y') }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tabs-container">
+        <div class="tabs">
+            <button class="tab active" data-tab="purchases">Compras</button>
+            <button class="tab" data-tab="points">Historial de Puntos</button>
+            <button class="tab" data-tab="promos">Promociones Usadas</button>
+        </div>
+        
+        <div class="tab-content active" id="purchases-tab">
+            <h3>Historial de Compras</h3>
+            
+            {% if pedidos %}
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Pedido</th>
+                            <th>Productos</th>
+                            <th>Total</th>
+                            <th>Puntos ganados</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos %}
+                        <tr>
+                            <td>{{ pedido.fecha.strftime('%d/%m/%Y') }}</td>
+                            <td>#{{ pedido.id }}</td>
+                            <td>{{ pedido.detalles|length }} productos</td>
+                            <td>${{ pedido.total }}</td>
+                            <td>{{ (pedido.total * 0.1)|int }}</td>
+                            <td>
+                                <a href="/pedidos/{{ pedido.id }}" class="action-button">Ver</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>Este cliente aún no ha realizado compras.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="tab-content" id="points-tab">
+            <h3>Historial de Puntos</h3>
+            
+            <div class="summary-card">
+                <div class="summary-row">
+                    <span>Puntos actuales:</span>
+                    <span class="highlight">{{ puntos }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Puntos canjeados:</span>
+                    <span>{{ puntos_canjeados }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Total acumulado:</span>
+                    <span>{{ puntos_totales }}</span>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Concepto</th>
+                            <th>Puntos</th>
+                            <th>Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movimiento in movimientos_puntos %}
+                        <tr class="{{ 'positive' if movimiento.puntos > 0 else 'negative' }}">
+                            <td>{{ movimiento.fecha.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ movimiento.concepto }}</td>
+                            <td>{{ movimiento.puntos }}</td>
+                            <td>{{ movimiento.balance }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="promos-tab">
+            <h3>Promociones Utilizadas</h3>
+            
+            {% if promociones_usadas %}
+            <div class="promos-grid">
+                {% for promo in promociones_usadas %}
+                <div class="promo-card">
+                    <div class="promo-header">
+                        <h4>{{ promo.title }}</h4>
+                        <span class="promo-date">{{ promo.used_date.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                    <div class="promo-body">
+                        <p>{{ promo.description }}</p>
+                        <div class="promo-details">
+                            <span class="promo-code">Código: {{ promo.code }}</span>
+                            <span class="promo-value">Valor: {{ promo.value }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>Este cliente aún no ha utilizado promociones.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="actions-row">
+        <a href="/gestion/clientes-frecuentes" class="secondary-button">Volver</a>
+    </div>
+</div>
+
+<style>
+    .view-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .client-info-card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        background-color: #f5f5f5;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .card-header h3 {
+        margin: 0;
+        color: #333;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .info-row {
+        margin-bottom: 0.5rem;
+        display: flex;
+    }
+    
+    .info-label {
+        width: 150px;
+        font-weight: bold;
+        color: #666;
+    }
+    
+    .level-badge {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+    
+    .level-bronze {
+        background-color: #cd7f32;
+        color: white;
+    }
+    
+    .level-silver {
+        background-color: #c0c0c0;
+        color: black;
+    }
+    
+    .level-gold {
+        background-color: #ffd700;
+        color: black;
+    }
+    
+    .level-vip {
+        background-color: #9c27b0;
+        color: white;
+    }
+    
+    .tabs-container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    
+    .tabs {
+        display: flex;
+        background-color: #f5f5f5;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .tab {
+        padding: 1rem 1.5rem;
+        border: none;
+        background: none;
+        font-weight: bold;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .tab:hover {
+        background-color: #e0e0e0;
+    }
+    
+    .tab.active {
+        color: #d32f2f;
+        border-bottom: 3px solid #d32f2f;
+    }
+    
+    .tab-content {
+        display: none;
+        padding: 1.5rem;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    .summary-card {
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .summary-row:last-child {
+        border-bottom: none;
+    }
+    
+    .highlight {
+        font-weight: bold;
+        color: #d32f2f;
+        font-size: 1.1rem;
+    }
+    
+    .positive {
+        color: #4caf50;
+    }
+    
+    .negative {
+        color: #f44336;
+    }
+    
+    .promos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .promo-card {
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .promo-header {
+        background-color: #d32f2f;
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .promo-header h4 {
+        margin: 0;
+        color: white;
+        font-size: 1.1rem;
+    }
+    
+    .promo-date {
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .promo-body {
+        padding: 1rem;
+    }
+    
+    .promo-details {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: #666;
+    }
+    
+    .actions-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 1rem;
+    }
+    
+    .secondary-button {
+        display: inline-block;
+        background-color: #f0f0f0;
+        color: #333;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    
+    .action-button {
+        display: inline-block;
+        background-color: #2196f3;
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs and tab contents
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Show corresponding tab content
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId + '-tab').classList.add('active');
+            });
+        });
+    });
+</script>
+{% endblock %}

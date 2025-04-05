@@ -5,56 +5,35 @@
 {% block content %}
 <div class="customer-registration-container">
     <h2>Registrar Nuevo Cliente Frecuente</h2>
-    
+
     <form action="/gestion/clientes-frecuentes/nuevo" method="post" class="customer-form">
         <div class="form-section personal-info">
             <h3>Información Personal</h3>
             <div class="form-row">
                 <div class="form-group">
                     <label for="nombre">Nombre Completo</label>
-                    <input 
-                        type="text" 
-                        id="nombre" 
-                        name="nombre" 
-                        required 
-                        placeholder="Nombre y apellido"
-                    >
+                    <input type="text" id="nombre" name="nombre" required placeholder="Nombre y apellido">
                 </div>
-                
+
                 <div class="form-group">
                     <label for="email">Correo Electrónico</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        required 
-                        placeholder="ejemplo@correo.com"
-                    >
+                    <input type="email" id="email" name="email" required placeholder="ejemplo@correo.com">
                 </div>
             </div>
-            
+
             <div class="form-row">
                 <div class="form-group">
                     <label for="telefono">Teléfono</label>
-                    <input 
-                        type="tel" 
-                        id="telefono" 
-                        name="telefono" 
-                        placeholder="Número de contacto"
-                    >
+                    <input type="tel" id="telefono" name="telefono" placeholder="Número de contacto">
                 </div>
-                
+
                 <div class="form-group">
                     <label for="fecha_nacimiento">Fecha de Nacimiento</label>
-                    <input 
-                        type="date" 
-                        id="fecha_nacimiento" 
-                        name="fecha_nacimiento"
-                    >
+                    <input type="date" id="fecha_nacimiento" name="fecha_nacimiento">
                 </div>
             </div>
         </div>
-        
+
         <div class="form-section loyalty-info">
             <h3>Programa de Fidelidad</h3>
             <div class="form-row">
@@ -67,44 +46,56 @@
                         <option value="vip">VIP</option>
                     </select>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="puntos_iniciales">Puntos Iniciales</label>
-                    <input 
-                        type="number" 
-                        id="puntos_iniciales" 
-                        name="puntos_iniciales" 
-                        min="0" 
-                        value="0"
-                    >
+                    <input type="number" id="puntos_iniciales" name="puntos_iniciales" min="0" value="0">
                 </div>
             </div>
-            
+
             <div class="form-group">
                 <label for="notas">Notas Adicionales</label>
-                <textarea 
-                    id="notas" 
-                    name="notas" 
-                    rows="3" 
-                    placeholder="Información adicional sobre el cliente"
-                ></textarea>
+                <textarea id="notas" name="notas" rows="3"
+                    placeholder="Información adicional sobre el cliente"></textarea>
             </div>
         </div>
-        
+
         <div class="form-section preferences">
             <h3>Preferencias</h3>
             <div class="preference-checkboxes">
                 <div class="checkbox-group">
-                    <input type="checkbox" id="newsletter" name="newsletter" value="true">
+                    <input type="checkbox" id="newsletter" name="newsletter">
                     <label for="newsletter">Suscribir a boletín informativo</label>
                 </div>
-                
+
                 <div class="checkbox-group">
-                    <input type="checkbox" id="promociones" name="promociones" value="true">
+                    <input type="checkbox" id="promociones" name="promociones">
                     <label for="promociones">Recibir promociones especiales</label>
                 </div>
+
             </div>
-            
+
+            <div class="form-group">
+                <label>Géneros de Interés</label>
+                <div class="genre-checkboxes">
+                    <div>
+                        <input type="checkbox" id="superhero" name="generos" value="superhero">
+                        <label for="superhero">Superhéroes</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="manga" name="generos" value="manga">
+                        <label for="manga">Manga</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="independiente" name="generos" value="independiente">
+                        <label for="independiente">Independiente</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="europeo" name="generos" value="europeo">
+                        <label for="europeo">Europeo</label>
+                    </div>
+                </div>
+            </div>
             <div class="form-group">
                 <label>Géneros de Interés</label>
                 <div class="genre-checkboxes">
@@ -127,7 +118,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="form-actions">
             <button type="submit" class="save-button">Registrar Cliente</button>
             <a href="/gestion/clientes-frecuentes" class="cancel-button">Cancelar</a>
@@ -142,39 +133,39 @@
         padding: 2rem;
         background-color: white;
         border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
-    
+
     .form-section {
         margin-bottom: 2rem;
         padding: 1.5rem;
         background-color: #f9f9f9;
         border-radius: 8px;
     }
-    
+
     .form-section h3 {
         margin-bottom: 1rem;
         color: #333;
         border-bottom: 2px solid #e0e0e0;
         padding-bottom: 0.5rem;
     }
-    
+
     .form-row {
         display: flex;
         gap: 1rem;
         margin-bottom: 1rem;
     }
-    
+
     .form-group {
         flex: 1;
     }
-    
+
     .form-group label {
         display: block;
         margin-bottom: 0.5rem;
         color: #666;
     }
-    
+
     .form-group input,
     .form-group select,
     .form-group textarea {
@@ -183,56 +174,57 @@
         border: 1px solid #ddd;
         border-radius: 4px;
     }
-    
+
     .preference-checkboxes {
         display: flex;
         gap: 1rem;
         margin-bottom: 1rem;
     }
-    
+
     .checkbox-group {
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
-    
+
     .genre-checkboxes {
         display: flex;
         gap: 1rem;
         flex-wrap: wrap;
     }
-    
+
     .genre-checkboxes div {
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
-    
+
     .form-actions {
         display: flex;
         justify-content: space-between;
         margin-top: 2rem;
     }
-    
-    .save-button, .cancel-button {
+
+    .save-button,
+    .cancel-button {
         padding: 0.75rem 1.5rem;
         border-radius: 4px;
         text-decoration: none;
         font-weight: bold;
         transition: opacity 0.3s;
     }
-    
+
     .save-button {
         background-color: #4CAF50;
         color: white;
         border: none;
     }
-    
+
     .cancel-button {
         background-color: #f44336;
         color: white;
     }
-    
+
     .save-button:hover,
     .cancel-button:hover {
         opacity: 0.9;
@@ -240,13 +232,13 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const form = document.querySelector('.customer-form');
-        
-        form.addEventListener('submit', function(event) {
+
+        form.addEventListener('submit', function (event) {
             const emailInput = document.getElementById('email');
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            
+
             if (!emailRegex.test(emailInput.value)) {
                 event.preventDefault();
                 alert('Por favor, ingrese un correo electrónico válido');

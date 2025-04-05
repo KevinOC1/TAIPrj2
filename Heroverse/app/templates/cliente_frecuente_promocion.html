@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}Enviar Promoción a {{ cliente.nombre }}{% endblock %}
+
+{% block content %}
+<div class="view-container">
+    <h2>Enviar Promoción Especial</h2>
+    
+    <div class="client-info-card">
+        <div class="card-header">
+            <h3>{{ cliente.nombre }}</h3>
+            <span class="level-badge level-{{ nivel }}">{{ nivel|capitalize }}</span>
+        </div>
+        <div class="card-body">
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value">{{ cliente.email }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Puntos acumulados:</span>
+                <span class="info-value">{{ puntos }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Desde:</span>
+                <span class="info-value">{{ cliente.created_at.strftime('%d/%m/%Y') }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-container">
+        <form action="/gestion/clientes-frecuentes/{{ cliente.id }}/promocion" method="post">
+            <div class="form-section">
+                <h3>Seleccionar Tipo de Promoción</h3>
+                
+                <div class="radio-options">
+                    <div class="radio-option">
+                        <input type="radio" id="promo-type-discount" name="promo_type" value="discount" checked>
+                        <label for="promo-type-discount">Descuento en compras</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="promo-type-free" name="promo_type" value="free">
+                        <label for="promo-type-free">Producto gratuito</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="promo-type-points" name="promo_type" value="points">
+                        <label for="promo-type-points">Puntos extra</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="promo-type-shipping" name="promo_type" value="shipping">
+                        <label for="promo-type-shipping">Envío gratuito</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section" id="discount-section">
+                <h3>Detalles del Descuento</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="discount-amount">Porcentaje de descuento:</label>
+                        <input type="number" id="discount-amount" name="discount_amount" min="5" max="50" value="15">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="discount-min-purchase">Compra mínima ($):</label>
+                        <input type="number" id="discount-min-purchase" name="discount_min_purchase" min="0" value="0">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Categorías aplicables:</label>
+                    <div class="checkbox-group">
+                        <div>
+                            <input type="checkbox" id="cat-all" name="categories" value="all" checked>
+                            <label for="cat-all">Todas las categorías</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="cat-marvel" name="categories" value="marvel">
+                            <label for="cat-marvel">Marvel</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="cat-dc" name="categories" value="dc">
+                            <label for="cat-dc">DC Comics</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="cat-manga" name="categories" value="manga">
+                            <label for="cat-manga">Manga</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Vigencia de la Promoción</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="valid-from">Válido desde:</label>
+                        <input type="date" id="valid-from" name="valid_from" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="valid-until">Válido hasta:</label>
+                        <input type="date" id="valid-until" name="valid_until" required>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Personalización</h3>
+                <div class="form-group">
+                    <label for="promo-title">Título de la promoción:</label>
+                    <input type="text" id="promo-title" name="promo_title" placeholder="Ej: Descuento especial para ti" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="promo-message">Mensaje personalizado:</label>
+                    <textarea id="promo-message" name="promo_message" rows="3" placeholder="Ej: Queremos premiarte por tu fidelidad con esta promoción exclusiva"></textarea>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Método de Envío</h3>
+                <div class="checkbox-group">
+                    <div>
+                        <input type="checkbox" id="send-email" name="send_method" value="email" checked>
+                        <label for="send-email">Enviar por email</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="send-sms" name="send_method" value="sms">
+                        <label for="send-sms">Enviar por SMS</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="primary-button">Enviar Promoción</button>
+                <a href="/gestion/clientes-frecuentes" class="secondary-button">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .view-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .client-info-card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        background-color: #f5f5f5;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .card-header h3 {
+        margin: 0;
+        color: #333;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .info-row {
+        margin-bottom: 0.5rem;
+        display: flex;
+    }
+    
+    .info-label {
+        width: 150px;
+        font-weight: bold;
+        color: #666;
+    }
+    
+    .level-badge {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+    
+    .level-bronze {
+        background-color: #cd7f32;
+        color: white;
+    }
+    
+    .level-silver {
+        background-color: #c0c0c0;
+        color: black;
+    }
+    
+    .level-gold {
+        background-color: #ffd700;
+        color: black;
+    }
+    
+    .level-vip {
+        background-color: #9c27b0;
+        color: white;
+    }
+    
+    .form-container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .form-section {
+        padding: 1.5rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .form-section h3 {
+        margin-top: 0;
+        margin-bottom: 1.2rem;
+        color: #333;
+        font-size: 1.2rem;
+    }
+    
+    .form-row {
+        display: flex;
+        gap: 1.5rem;
+    }
+    
+    .form-group {
+        flex: 1;
+        margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #666;
+        font-weight: bold;
+    }
+    
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group input[type="date"],
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .radio-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+    }
+    
+    .radio-option {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .checkbox-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .checkbox-group > div {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 150px;
+    }
+    
+    .form-actions {
+        padding: 1.5rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+    
+    .primary-button, .secondary-button {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .primary-button {
+        background-color: #d32f2f;
+        color: white;
+    }
+    
+    .secondary-button {
+        background-color: #f0f0f0;
+        color: #333;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set today as default start date and +30 days as end date
+        const today = new Date();
+        const thirtyDaysLater = new Date(today);
+        thirtyDaysLater.setDate(today.getDate() + 30);
+        
+        const formatDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+        
+        document.getElementById('valid-from').value = formatDate(today);
+        document.getElementById('valid-until').value = formatDate(thirtyDaysLater);
+        
+        // Toggle sections based on promotion type
+        const promoTypeRadios = document.querySelectorAll('input[name="promo_type"]');
+        const discountSection = document.getElementById('discount-section');
+        
+        promoTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Here you could show/hide different sections based on promo type
+                // For now, we'll just handle the discount section
+                if (this.value === 'discount') {
+                    discountSection.style.display = 'block';
+                } else {
+                    discountSection.style.display = 'none';
+                }
+            });
+        });
+        
+        // Validate dates
+        const validFromInput = document.getElementById('valid-from');
+        const validUntilInput = document.getElementById('valid-until');
+        
+        validUntilInput.addEventListener('change', function() {
+            const fromDate = new Date(validFromInput.value);
+            const untilDate = new Date(this.value);
+            
+            if (untilDate < fromDate) {
+                alert('La fecha final no puede ser anterior a la fecha inicial');
+                this.value = validFromInput.value;
+            }
+        });
+    });
+</script>
+{% endblock %}

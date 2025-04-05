@@ -1,0 +1,472 @@
+{% extends "base.html" %}
+
+{% block title %}Ajustar Nivel - {{ cliente.nombre }}{% endblock %}
+
+{% block content %}
+<div class="view-container">
+    <h2>Ajustar Nivel de Cliente</h2>
+
+    <div class="client-info-card">
+        <div class="card-header">
+            <h3>{{ cliente.nombre }}</h3>
+            <span class="level-badge level-{{ nivel }}">{{ nivel|capitalize }}</span>
+        </div>
+        <div class="card-body">
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value">{{ cliente.email }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Puntos acumulados:</span>
+                <span class="info-value">{{ puntos }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Desde:</span>
+                <span class="info-value">{{ cliente.created_at.strftime('%d/%m/%Y') }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Total compras:</span>
+                <span class="info-value">${{ total_compras }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="levels-container">
+        <div class="levels-header">
+            <h3>Niveles del Programa de Fidelidad</h3>
+            <p>El nivel de un cliente determina los beneficios a los que tiene acceso.</p>
+        </div>
+
+        <div class="levels-grid">
+            <div class="level-card {{ 'current' if nivel == 'bronze' }}">
+                <div class="level-header bronze">
+                    <h4>Bronze</h4>
+                    <div class="level-badge level-bronze">Bronze</div>
+                </div>
+                <div class="level-body">
+                    <div class="level-requirements">
+                        <h5>Requisitos</h5>
+                        <ul>
+                            <li>Registrarse en el programa</li>
+                            <li>No requiere compras mínimas</li>
+                        </ul>
+                    </div>
+                    <div class="level-benefits">
+                        <h5>Beneficios</h5>
+                        <ul>
+                            <li>5% de descuento en primera compra</li>
+                            <li>1 punto por cada $10 de compra</li>
+                            <li>Notificaciones de nuevos cómics</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="level-footer">
+                    {{ 'Nivel actual' if nivel == 'bronze' else '' }}
+                </div>
+            </div>
+
+            <div class="level-card {{ 'current' if nivel == 'silver' }}">
+                <div class="level-header silver">
+                    <h4>Silver</h4>
+                    <div class="level-badge level-silver">Silver</div>
+                </div>
+                <div class="level-body">
+                    <div class="level-requirements">
+                        <h5>Requisitos</h5>
+                        <ul>
+                            <li>Compras totales: $500+</li>
+                            <li>Al menos 5 pedidos completados</li>
+                        </ul>
+                    </div>
+                    <div class="level-benefits">
+                        <h5>Beneficios</h5>
+                        <ul>
+                            <li>10% de descuento en compras</li>
+                            <li>1.2 puntos por cada $10 de compra</li>
+                            <li>Acceso a promociones exclusivas</li>
+                            <li>Envío gratuito en compras superiores a $100</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="level-footer">
+                    {{ 'Nivel actual' if nivel == 'silver' else '' }}
+                </div>
+            </div>
+
+            <div class="level-card {{ 'current' if nivel == 'gold' }}">
+                <div class="level-header gold">
+                    <h4>Gold</h4>
+                    <div class="level-badge level-gold">Gold</div>
+                </div>
+                <div class="level-body">
+                    <div class="level-requirements">
+                        <h5>Requisitos</h5>
+                        <ul>
+                            <li>Compras totales: $1,000+</li>
+                            <li>Al menos 10 pedidos completados</li>
+                            <li>Actividad en los últimos 6 meses</li>
+                        </ul>
+                    </div>
+                    <div class="level-benefits">
+                        <h5>Beneficios</h5>
+                        <ul>
+                            <li>15% de descuento en compras</li>
+                            <li>1.5 puntos por cada $10 de compra</li>
+                            <li>Envío gratuito en todas las compras</li>
+                            <li>Acceso anticipado a nuevos lanzamientos</li>
+                            <li>Regalos en cumpleaños</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="level-footer">
+                    {{ 'Nivel actual' if nivel == 'gold' else '' }}
+                </div>
+            </div>
+
+            <div class="level-card {{ 'current' if nivel == 'vip' }}">
+                <div class="level-header vip">
+                    <h4>VIP</h4>
+                    <div class="level-badge level-vip">VIP</div>
+                </div>
+                <div class="level-body">
+                    <div class="level-requirements">
+                        <h5>Requisitos</h5>
+                        <ul>
+                            <li>Compras totales: $2,500+</li>
+                            <li>Al menos 20 pedidos completados</li>
+                            <li>Cliente activo por más de 1 año</li>
+                        </ul>
+                    </div>
+                    <div class="level-benefits">
+                        <h5>Beneficios</h5>
+                        <ul>
+                            <li>20% de descuento en todas las compras</li>
+                            <li>2 puntos por cada $10 de compra</li>
+                            <li>Envío prioritario gratuito</li>
+                            <li>Atención al cliente VIP</li>
+                            <li>Invitaciones a eventos exclusivos</li>
+                            <li>Un cómic gratuito cada 3 meses</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="level-footer">
+                    {{ 'Nivel actual' if nivel == 'vip' else '' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <form action="/gestion/clientes-frecuentes/{{ cliente.id }}/nivel" method="post">
+            <div class="form-section">
+                <h3>Cambiar Nivel del Cliente</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="new-level">Nuevo nivel:</label>
+                        <select id="new-level" name="nuevo_nivel" class="form-control">
+                            <option value="bronze" {{ 'selected' if nivel=='bronze' }}>Bronze</option>
+                            <option value="silver" {{ 'selected' if nivel=='silver' }}>Silver</option>
+                            <option value="gold" {{ 'selected' if nivel=='gold' }}>Gold</option>
+                            <option value="vip" {{ 'selected' if nivel=='vip' }}>VIP</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="motivo">Motivo del cambio:</label>
+                        <select id="motivo" name="motivo" class="form-control">
+                            <option value="manual">Ajuste manual</option>
+                            <option value="promocion">Promoción especial</option>
+                            <option value="compras">Nivel de compras</option>
+                            <option value="lealtad">Recompensa por lealtad</option>
+                            <option value="error">Corrección de error</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="comentarios">Comentarios adicionales:</label>
+                    <textarea id="comentarios" name="comentarios" rows="3" class="form-control"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-option">
+                        <input type="checkbox" id="notificar" name="notificar" value="true" checked>
+                        <label for="notificar">Notificar al cliente sobre el cambio de nivel</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="primary-button">Actualizar Nivel</button>
+                <a href="/gestion/clientes-frecuentes" class="secondary-button">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .view-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .client-info-card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background-color: #f5f5f5;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        color: #333;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .info-row {
+        margin-bottom: 0.5rem;
+        display: flex;
+    }
+
+    .info-label {
+        width: 150px;
+        font-weight: bold;
+        color: #666;
+    }
+
+    .level-badge {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+
+    .level-bronze {
+        background-color: #cd7f32;
+        color: white;
+    }
+
+    .level-silver {
+        background-color: #c0c0c0;
+        color: black;
+    }
+
+    .level-gold {
+        background-color: #ffd700;
+        color: black;
+    }
+
+    .level-vip {
+        background-color: #9c27b0;
+        color: white;
+    }
+
+    .levels-container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .levels-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .levels-header h3 {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    .levels-header p {
+        margin: 0;
+        color: #666;
+    }
+
+    .levels-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .level-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .level-card.current {
+        border: 2px solid #d32f2f;
+        box-shadow: 0 0 10px rgba(211, 47, 47, 0.2);
+    }
+
+    .level-header {
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .level-header h4 {
+        margin: 0;
+        color: white;
+    }
+
+    .level-header.bronze {
+        background-color: #cd7f32;
+    }
+
+    .level-header.silver {
+        background-color: #c0c0c0;
+    }
+
+    .level-header.gold {
+        background-color: #ffd700;
+        color: black;
+    }
+
+    .level-header.gold h4 {
+        color: black;
+    }
+
+    .level-header.vip {
+        background-color: #9c27b0;
+    }
+
+    .level-body {
+        padding: 1rem;
+    }
+
+    .level-requirements,
+    .level-benefits {
+        margin-bottom: 1rem;
+    }
+
+    .level-requirements h5,
+    .level-benefits h5 {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .level-requirements ul,
+    .level-benefits ul {
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+
+    .level-requirements li,
+    .level-benefits li {
+        margin-bottom: 0.25rem;
+        font-size: 0.9rem;
+    }
+
+    .level-footer {
+        padding: 0.75rem;
+        background-color: #f9f9f9;
+        text-align: center;
+        font-weight: bold;
+        color: #d32f2f;
+    }
+
+    .form-container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .form-section {
+        padding: 1.5rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .form-section h3 {
+        margin-top: 0;
+        margin-bottom: 1.2rem;
+        color: #333;
+        font-size: 1.2rem;
+    }
+
+    .form-row {
+        display: flex;
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        flex: 1;
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #666;
+        font-weight: bold;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    .checkbox-option {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-actions {
+        padding: 1.5rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+
+    .primary-button,
+    .secondary-button {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+    }
+
+    .primary-button {
+        background-color: #d32f2f;
+        color: white;
+    }
+
+    .secondary-button {
+        background-color: #f0f0f0;
+        color: #333;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Add any JavaScript functionality if needed
+    });
+</script>
+{% endblock %}

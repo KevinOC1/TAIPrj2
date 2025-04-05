@@ -3,13 +3,13 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime
-from datetime import date
+from datetime import datetime, timedelta
 import logging
 
-
+# Reorganización de importaciones para evitar conflictos
 from app.database import get_db
-from app import models, schemas, crud
+from app import models, schemas
+from . import crud  # crud específico de gestión comercial
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -87,38 +87,39 @@ async def gestion_stock(request: Request, db: Session = Depends(get_db)):
 # Rutas para Clientes Frecuentes
 @router.get("/gestion/clientes-frecuentes", response_class=HTMLResponse)
 async def clientes_frecuentes(request: Request, db: Session = Depends(get_db)):
-    # Estadísticas para el módulo
+    # Estadísticas reales para el módulo
     stats = {
-        "members": 25,  # Simulado
-        "vip_members": 7,  # Simulado
-        "active_promos": 3,  # Simulado
-        "vip_orders": 12   # Simulado
+        "members": db.query(models.Cliente).count(),
+        "vip_members": db.query(models.Cliente).filter(models.Cliente.nivel == "vip").count(),
+        "active_promos": 3,  # Puedes modificar esto según tus promociones reales
+        "vip_orders": db.query(models.Pedido).filter(models.Pedido.cliente.has(nivel="vip")).count()
     }
     
-    # Obtener clientes frecuentes simulados
-    # En implementación real, deberíamos tener un modelo ClienteFrecuente
+    # Obtener clientes con sus niveles reales
     clientes_db = db.query(models.Cliente).limit(10).all()
     frequent_clients = []
     
-    levels = ["bronze", "silver", "gold", "vip"]
-    
-    for i, cliente in enumerate(clientes_db):
-        # Simular datos de cliente frecuente
-        level = levels[i % 4]
-        points = (i + 1) * 100
-        orders = (i + 1) * 2
+    for cliente in clientes_db:
+        # Calcular número de pedidos
+        num_pedidos = db.query(models.Pedido).filter(models.Pedido.cliente_id == cliente.id).count()
+        
+        # Encontrar la última compra
+        ultima_compra = db.query(models.Pedido)\
+            .filter(models.Pedido.cliente_id == cliente.id)\
+            .order_by(models.Pedido.fecha.desc())\
+            .first()
         
         frequent_clients.append({
             "id": cliente.id,
             "nombre": cliente.nombre,
             "email": cliente.email,
-            "level": level,
-            "points": points,
-            "orders": orders,
-            "last_purchase": datetime.now().strftime("%d/%m/%Y")
+            "level": cliente.nivel or "bronze",  # Usar nivel real de la base de datos
+            "points": cliente.puntos or 0,
+            "orders": num_pedidos,
+            "last_purchase": ultima_compra.fecha.strftime("%d/%m/%Y") if ultima_compra else "N/A"
         })
     
-    # Simular promociones
+    # Mantener las promociones y campañas simuladas
     promotions = [
         {
             "id": 1,
@@ -158,7 +159,7 @@ async def clientes_frecuentes(request: Request, db: Session = Depends(get_db)):
         }
     ]
     
-    # Simular campañas
+    # Mantener las campañas simuladas
     campaigns = [
         {
             "id": 1,
@@ -357,8 +358,9 @@ async def ver_pedido_proveedor(pedido_id: int, request: Request, db: Session = D
     
 @router.get("/stock/entrada", response_class=HTMLResponse)
 async def entrada_stock_form(request: Request, db: Session = Depends(get_db)):
-    comics = crud.get_comics(db)
-    proveedores = crud.get_proveedores(db)
+    # Usamos el módulo crud local
+    comics = db.query(models.Comic).all()  # O usar app.crud.get_comics si está disponible
+    proveedores = db.query(models.Proveedor).all()  # O usar app.crud.get_proveedores si está disponible
     return templates.TemplateResponse(
         "stock_entrada.html", 
         {"request": request, "comics": comics, "proveedores": proveedores}
@@ -379,7 +381,7 @@ async def entrada_stock(
 
 @router.get("/stock/salida", response_class=HTMLResponse)
 async def salida_stock_form(request: Request, db: Session = Depends(get_db)):
-    comics = crud.get_comics(db)
+    comics = db.query(models.Comic).all()  # O usar app.crud.get_comics si está disponible
     return templates.TemplateResponse(
         "stock_salida.html", 
         {"request": request, "comics": comics}
@@ -415,7 +417,7 @@ async def remove_product_from_pedido(
 
 @router.get("/stock/ajustar", response_class=HTMLResponse)
 async def ajustar_stock_form(request: Request, db: Session = Depends(get_db)):
-    comics = crud.get_comics(db)
+    comics = db.query(models.Comic).all()  # O usar app.crud.get_comics si está disponible
     return templates.TemplateResponse(
         "stock_ajustar.html", 
         {"request": request, "comics": comics}
@@ -435,7 +437,7 @@ async def ajustar_stock(
 
 @router.get("/stock/transferir", response_class=HTMLResponse)
 async def transferir_stock_form(request: Request, db: Session = Depends(get_db)):
-    comics = crud.get_comics(db)
+    comics = db.query(models.Comic).all()  # O usar app.crud.get_comics si está disponible
     return templates.TemplateResponse(
         "stock_transferir.html", 
         {"request": request, "comics": comics}
@@ -481,7 +483,7 @@ async def establecer_limites_stock_form(
 
 @router.get("/gestion/stock/establecer-limites", response_class=HTMLResponse)
 async def establecer_limites_stock_global_form(request: Request, db: Session = Depends(get_db)):
-    comics = crud.get_comics(db)
+    comics = db.query(models.Comic).all()  # O usar app.crud.get_comics si está disponible
     return templates.TemplateResponse(
         "establecer_limites.html", 
         {"request": request, "comics": comics}
@@ -542,28 +544,41 @@ async def crear_cliente_frecuente(
     nombre: str = Form(...),
     email: str = Form(...),
     telefono: Optional[str] = Form(None),
-    fecha_nacimiento: Optional[str] = Form(None),  # Change to string first
+    fecha_nacimiento: Optional[str] = Form(None),
     nivel: Optional[str] = Form("bronze"),
     puntos_iniciales: Optional[int] = Form(0),
     notas: Optional[str] = Form(None),
-    newsletter: Optional[bool] = Form(False),
-    promociones: Optional[bool] = Form(False),
-    generos: Optional[List[str]] = Form(None),
+    newsletter: bool = Form(False),
+    promociones: bool = Form(False),
+    generos: List[str] = Form([]),
     db: Session = Depends(get_db)
 ):
     try:
         # Parse fecha_nacimiento if provided
         parsed_fecha_nacimiento = None
-        if fecha_nacimiento:
+        if fecha_nacimiento and fecha_nacimiento.strip():
             try:
-                parsed_fecha_nacimiento = date.fromisoformat(fecha_nacimiento)
+                parsed_fecha_nacimiento = datetime.strptime(fecha_nacimiento, "%Y-%m-%d")
             except ValueError:
-                # Log the error but don't stop processing
                 logger.warning(f"Invalid date format: {fecha_nacimiento}")
-
+        
         # Log form data for debugging
-        logger.info(f"Received form data: {await request.form()}")
-
+        form_data = await request.form()
+        logger.info(f"Received form data: {dict(form_data)}")
+        
+        # Process checkbox values
+        newsletter_value = "newsletter" in form_data
+        promociones_value = "promociones" in form_data
+        
+        # Process genres (multi-checkbox) - Método corregido
+        # En lugar de getall, usamos la lista generos que ya recibimos como parámetro
+        # o podemos acceder directamente al form_data para obtener valores individuales
+        if isinstance(generos, list):
+            generos_str = ",".join(generos)
+        else:
+            # Si solo es un valor (no lista), lo tratamos como cadena única
+            generos_str = str(generos) if generos else None
+        
         cliente_data = {
             "nombre": nombre,
             "email": email,
@@ -572,12 +587,16 @@ async def crear_cliente_frecuente(
             "nivel": nivel,
             "puntos": puntos_iniciales,
             "notas": notas,
-            "newsletter": newsletter,
-            "promociones": promociones,
-            "generos_interes": generos
+            "newsletter": newsletter_value,
+            "promociones": promociones_value,
+            "generos_interes": generos_str
         }
         
+        logger.info(f"Processed client data: {cliente_data}")
+        
+        # Usamos el crud local para crear el cliente frecuente
         nuevo_cliente = crud.crear_cliente_frecuente(db, cliente_data)
+        logger.info(f"Successfully created client with ID: {nuevo_cliente.id}")
         
         return RedirectResponse(url="/gestion/clientes-frecuentes", status_code=303)
     except Exception as e:
@@ -589,11 +608,200 @@ async def crear_cliente_frecuente(
             "request": request, 
             "error": str(e)
         })
+        
+        
+@router.get("/gestion/clientes-frecuentes/{cliente_id}/historial", response_class=HTMLResponse)
+async def cliente_frecuente_historial(
+    request: Request, 
+    cliente_id: int, 
+    db: Session = Depends(get_db)
+):
+    # Obtener datos del cliente
+    cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
+    if not cliente:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+    
+    # Para la demo, simulamos un nivel, puntos y pedidos
+    nivel = "gold"  # En la implementación real, esto vendría del cliente
+    puntos = 750    # En la implementación real, esto vendría del cliente
+    
+    # Obtener pedidos reales del cliente
+    pedidos = db.query(models.Pedido).filter(models.Pedido.cliente_id == cliente_id).all()
+    
+    # Simular movimientos de puntos
+    movimientos_puntos = [
+        {
+            "fecha": datetime.now() - timedelta(days=60),
+            "concepto": "Compra inicial",
+            "puntos": 100,
+            "balance": 100
+        },
+        {
+            "fecha": datetime.now() - timedelta(days=45),
+            "concepto": "Compra de cómics Marvel",
+            "puntos": 200,
+            "balance": 300
+        },
+        {
+            "fecha": datetime.now() - timedelta(days=30),
+            "concepto": "Canje por descuento",
+            "puntos": -150,
+            "balance": 150
+        },
+        {
+            "fecha": datetime.now() - timedelta(days=15),
+            "concepto": "Compra de cómics DC",
+            "puntos": 250,
+            "balance": 400
+        },
+        {
+            "fecha": datetime.now() - timedelta(days=5),
+            "concepto": "Puntos por cumpleaños",
+            "puntos": 350,
+            "balance": 750
+        }
+    ]
+    
+    # Simular estadísticas de puntos
+    puntos_canjeados = 150
+    puntos_totales = puntos + puntos_canjeados
+    
+    # Simular promociones usadas
+    promociones_usadas = [
+        {
+            "title": "Descuento 15% en Marvel",
+            "description": "15% de descuento en todos los cómics de Marvel",
+            "code": "MARVEL15",
+            "value": "15% descuento",
+            "used_date": datetime.now() - timedelta(days=30)
+        },
+        {
+            "title": "Cómic gratis por puntos",
+            "description": "Canje de 150 puntos por un descuento en tu compra",
+            "code": "POINTS2023",
+            "value": "150 puntos",
+            "used_date": datetime.now() - timedelta(days=30)
+        }
+    ]
+    
+    return templates.TemplateResponse("cliente_frecuente_historial.html", {
+        "request": request,
+        "cliente": cliente,
+        "nivel": nivel,
+        "puntos": puntos,
+        "pedidos": pedidos,
+        "movimientos_puntos": movimientos_puntos,
+        "puntos_canjeados": puntos_canjeados,
+        "puntos_totales": puntos_totales,
+        "promociones_usadas": promociones_usadas
+    })
 
-# Add a GET route to render the form
-@router.get("/gestion/clientes-frecuentes/nuevo", response_class=HTMLResponse)
-async def nuevo_cliente_frecuente_form(request: Request):
-    return templates.TemplateResponse(
-        "nuevo_cliente_frecuente.html", 
-        {"request": request}
-    )
+@router.get("/gestion/clientes-frecuentes/{cliente_id}/promocion", response_class=HTMLResponse)
+async def cliente_frecuente_promocion_form(
+    request: Request, 
+    cliente_id: int, 
+    db: Session = Depends(get_db)
+):
+    # Obtener datos del cliente
+    cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
+    if not cliente:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+    
+    # Para la demo, simulamos un nivel y puntos
+    nivel = "gold"  # En la implementación real, esto vendría del cliente
+    puntos = 750    # En la implementación real, esto vendría del cliente
+    
+    return templates.TemplateResponse("cliente_frecuente_promocion.html", {
+        "request": request,
+        "cliente": cliente,
+        "nivel": nivel,
+        "puntos": puntos
+    })
+
+@router.post("/gestion/clientes-frecuentes/{cliente_id}/promocion")
+async def cliente_frecuente_promocion_submit(
+    request: Request,
+    cliente_id: int,
+    promo_type: str = Form(...),
+    promo_title: str = Form(...),
+    valid_from: str = Form(...),
+    valid_until: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # Aquí procesarías los datos del formulario
+    # y enviarías la promoción al cliente
+    
+    # Redireccionar a la lista de clientes frecuentes
+    return RedirectResponse(url="/gestion/clientes-frecuentes", status_code=303)
+
+@router.get("/gestion/clientes-frecuentes/{cliente_id}/nivel", response_class=HTMLResponse)
+async def cliente_frecuente_nivel_form(
+    request: Request, 
+    cliente_id: int, 
+    db: Session = Depends(get_db)
+):
+    # Obtener datos del cliente
+    cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
+    if not cliente:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+    
+    # Obtener nivel actual de la base de datos
+    nivel_actual = cliente.nivel or "bronze"  # Valor por defecto si no tiene nivel
+    
+    # Calcular puntos y total de compras
+    # En una implementación real, calcularías esto de la base de datos
+    puntos = sum(pedido.total for pedido in cliente.pedidos) // 10  # Ejemplo simple de cálculo de puntos
+    total_compras = sum(pedido.total for pedido in cliente.pedidos)
+    
+    return templates.TemplateResponse("cliente_frecuente_nivel.html", {
+        "request": request,
+        "cliente": cliente,
+        "nivel": nivel_actual,  # Usar nivel de la base de datos
+        "puntos": puntos,
+        "total_compras": total_compras
+    })
+
+@router.post("/gestion/clientes-frecuentes/{cliente_id}/nivel")
+async def cliente_frecuente_nivel_submit(
+    request: Request,
+    cliente_id: int,
+    nuevo_nivel: str = Form(...),
+    motivo: str = Form(...),
+    comentarios: Optional[str] = Form(None),
+    notificar: bool = Form(False),
+    db: Session = Depends(get_db)
+):
+    try:
+        # Obtener el cliente
+        cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
+        if not cliente:
+            raise HTTPException(status_code=404, detail="Cliente no encontrado")
+        
+        # Actualizar nivel
+        cliente.nivel = nuevo_nivel
+        
+        # Registrar cambio de nivel (podrías crear un modelo de historial de niveles)
+        # Ejemplo de cómo podrías registrar el cambio
+        cambio_nivel = models.CambioNivel(
+            cliente_id=cliente_id,
+            nivel_anterior=cliente.nivel,
+            nivel_nuevo=nuevo_nivel,
+            motivo=motivo,
+            comentarios=comentarios,
+            fecha=datetime.now()
+        )
+        
+        db.add(cambio_nivel)
+        db.commit()
+        
+        # Opcional: Enviar notificación si está marcado
+        if notificar:
+            # Lógica para enviar notificación (correo, SMS, etc.)
+            pass
+        
+        return RedirectResponse(url="/gestion/clientes-frecuentes", status_code=303)
+    
+    except Exception as e:
+        # Manejar cualquier error
+        logger.error(f"Error actualizando nivel de cliente: {e}")
+        raise HTTPException(status_code=500, detail="Error al actualizar el nivel del cliente")
