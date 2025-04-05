@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Pedidos a Proveedores{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Pedidos a Proveedores</h2>
+    
+    <table border="1" style="width: 100%; margin-top: 20px;">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Proveedor</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos_proveedor %}
+            <tr>
+                <td>#{{ pedido.id }}</td>
+                <td>{{ pedido.proveedor.nombre }}</td>
+                <td>{{ pedido.fecha_pedido.strftime('%d/%m/%Y') }}</td>
+                <td>{{ pedido.estado }}</td>
+                <td>${{ pedido.total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 20px;">
+        <a href="/gestion/pedidos-proveedor/crear">Crear Nuevo Pedido</a>
+    </div>
+</div>
+{% endblock %}

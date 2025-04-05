@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if comic %}
+        Establecer Límite de Stock - {{ comic.title }}
+    {% else %}
+        Establecer Límites de Stock
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="edit-comic-container">
+    <h2>
+        {% if comic %}
+            Establecer Límite de Stock: {{ comic.title }}
+        {% else %}
+            Establecer Límites de Stock Globales
+        {% endif %}
+    </h2>
+    
+    <form 
+        action="{% if comic %}/gestion/stock/{{ comic.id }}/establecer-limites{% else %}/gestion/stock/establecer-limites{% endif %}" 
+        method="post" 
+        class="comic-edit-form"
+    >
+        {% if comic %}
+            <!-- Single Comic View -->
+            <div class="comic-details">
+                <div class="comic-image">
+                    <img src="{{ comic.image_url }}" alt="{{ comic.title }}">
+                </div>
+                
+                <div class="comic-info">
+                    <h3>{{ comic.title }}</h3>
+                    <div class="stock-info">
+                        <p><strong>Stock Actual:</strong> {{ comic.stock }} unidades</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="limite_minimo">Límite Mínimo de Stock:</label>
+                        <input 
+                            type="number" 
+                            id="limite_minimo" 
+                            name="limite_minimo" 
+                            value="{{ comic.limite_minimo or 10 }}" 
+                            min="0" 
+                            max="{{ comic.stock }}"
+                            class="form-control stock-limit-input"
+                            required
+                        >
+                        <small class="form-text">
+                            Establece el nivel mínimo de stock para este cómic. 
+                            Cuando el stock caiga por debajo de este número, se generará una alerta.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <!-- Multiple Comics View -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Cómic</th>
+                            <th>Stock Actual</th>
+                            <th>Límite Mínimo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for comic in comics %}
+                        <tr>
+                            <td>
+                                <input type="hidden" name="comic_ids" value="{{ comic.id }}">
+                                {{ comic.title }}
+                            </td>
+                            <td>{{ comic.stock }}</td>
+                            <td>
+                                <input 
+                                    type="number" 
+                                    name="limites_minimos" 
+                                    value="{{ comic.limite_minimo or 10 }}" 
+                                    min="0" 
+                                    max="{{ comic.stock }}"
+                                    class="form-control stock-limit-input"
+                                    data-current-stock="{{ comic.stock }}"
+                                >
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+        
+        <div class="form-actions">
+            <button type="submit" class="save-button">Guardar Límites</button>
+            <a href="/inventario" class="cancel-button">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const stockLimitInputs = document.querySelectorAll('.stock-limit-input');
+        
+        stockLimitInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const currentStock = parseInt(this.getAttribute('data-current-stock') || this.getAttribute('max'));
+                const limitValue = parseInt(this.value);
+                
+                // Validar que el límite no sea mayor que el stock actual
+                if (limitValue > currentStock) {
+                    alert('El límite mínimo no puede ser mayor que el stock actual');
+                    this.value = currentStock;
+                }
+                
+                // Asegurar que el límite sea un número positivo
+                if (limitValue < 0) {
+                    this.value = 0;
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    .comic-details {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+    }
+    
+    .comic-image img {
+        max-width: 200px;
+        max-height: 300px;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .stock-limit-input {
+        width: 100px;
+        text-align: center;
+        padding: 0.25rem;
+    }
+    
+    .form-text {
+        display: block;
+        margin-top: 0.5rem;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+    }
+    
+    .data-table th, 
+    .data-table td {
+        text-align: center;
+    }
+</style>
+{% endblock %}

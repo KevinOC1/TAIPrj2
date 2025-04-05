@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Salida de Stock{% endblock %}
+
+{% block content %}
+<div class="edit-comic-container">
+    <h2>Salida de Stock</h2>
+    
+    <form action="/stock/salida" method="post" class="comic-edit-form">
+        <div class="form-group">
+            <label for="comic_id">Seleccionar Cómic:</label>
+            <select id="comic_id" name="comic_id" required class="form-control">
+                <option value="">Selecciona un cómic</option>
+                {% for comic in comics %}
+                <option value="{{ comic.id }}" data-stock="{{ comic.stock }}">
+                    {{ comic.title }} (Stock actual: {{ comic.stock }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="cantidad">Cantidad:</label>
+            <input 
+                type="number" 
+                id="cantidad" 
+                name="cantidad" 
+                required 
+                class="form-control"
+                min="1"
+                placeholder="Ingresa la cantidad de unidades"
+            >
+            <small class="form-text text-muted" id="stock-info"></small>
+        </div>
+        
+        <div class="form-group">
+            <label for="razon">Razón de la Salida (opcional):</label>
+            <select id="razon" name="razon" class="form-control">
+                <option value="">Selecciona una razón</option>
+                <option value="merma">Merma</option>
+                <option value="devolucion">Devolución</option>
+                <option value="muestra">Muestra</option>
+                <option value="otro">Otro</option>
+            </select>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="save-button">Registrar Salida</button>
+            <a href="/inventario" class="cancel-button">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const comicSelect = document.getElementById('comic_id');
+        const cantidadInput = document.getElementById('cantidad');
+        const stockInfo = document.getElementById('stock-info');
+        
+        // Validar stock disponible
+        function validateStock() {
+            const selectedOption = comicSelect.options[comicSelect.selectedIndex];
+            const stockActual = parseInt(selectedOption.getAttribute('data-stock'));
+            const cantidadIngresada = parseInt(cantidadInput.value) || 0;
+            
+            if (cantidadIngresada > stockActual) {
+                stockInfo.textContent = `Error: No hay suficiente stock. Stock disponible: ${stockActual}`;
+                stockInfo.style.color = 'red';
+                cantidadInput.value = stockActual;
+            } else {
+                stockInfo.textContent = `Stock disponible: ${stockActual}`;
+                stockInfo.style.color = 'green';
+            }
+        }
+        
+        // Eventos para validación
+        comicSelect.addEventListener('change', function() {
+            if (this.value) {
+                const selectedOption = this.options[this.selectedIndex];
+                const stockActual = selectedOption.getAttribute('data-stock');
+                stockInfo.textContent = `Stock disponible: ${stockActual}`;
+                stockInfo.style.color = 'green';
+            }
+        });
+        
+        cantidadInput.addEventListener('input', function() {
+            if (comicSelect.value) {
+                validateStock();
+            }
+        });
+    });
+</script>
+
+<style>
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .form-text {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}

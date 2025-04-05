@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+
+{% block title %}HeroVerse Comics - Gestión de Stock{% endblock %}
+
+{% block content %}
+<div class="stock-container">
+    <h2>Control de Stock</h2>
+    
+    <div class="summary-cards">
+        <div class="summary-card">
+            <div class="summary-icon low-stock-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="summary-content">
+                <h3>Stock Bajo</h3>
+                <p class="summary-value">{{ stats.low_stock }}</p>
+                <p class="summary-desc">Productos que necesitan reposición</p>
+            </div>
+        </div>
+        
+        <div class="summary-card">
+            <div class="summary-icon normal-stock-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="summary-content">
+                <h3>Stock Normal</h3>
+                <p class="summary-value">{{ stats.normal_stock }}</p>
+                <p class="summary-desc">Productos con niveles adecuados</p>
+            </div>
+        </div>
+        
+        <div class="summary-card">
+            <div class="summary-icon high-stock-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="summary-content">
+                <h3>Sobre Almacenado</h3>
+                <p class="summary-value">{{ stats.overstocked }}</p>
+                <p class="summary-desc">Productos con exceso de stock</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="filters-container">
+        <div class="search-box">
+            <input type="text" id="stockSearch" placeholder="Buscar por título o ISBN...">
+            <button type="button"><i class="fas fa-search"></i></button>
+        </div>
+        
+        <div class="filter-options">
+            <select id="stockFilter">
+                <option value="">Todos los estados</option>
+                <option value="low">Stock Bajo</option>
+                <option value="normal">Stock Normal</option>
+                <option value="high">Sobre Almacenado</option>
+            </select>
+            
+            <select id="categoryFilter">
+                <option value="">Todas las categorías</option>
+                <option value="marvel">Marvel</option>
+                <option value="dc">DC Comics</option>
+                <option value="manga">Manga</option>
+                <option value="otros">Otros</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="stock-table-container">
+        <table class="stock-table">
+            <thead>
+                <tr>
+                    <th>Imagen</th>
+                    <th>Título</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Stock Actual</th>
+                    <th>Stock Mínimo</th>
+                    <th>Stock Máximo</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for comic in comics %}
+                <tr class="stock-row {{ comic.stock_status }}">
+                    <td class="comic-img-cell">
+                        <img src="{{ comic.image_url }}" alt="{{ comic.title }}" class="comic-thumbnail">
+                    </td>
+                    <td class="comic-title-cell">{{ comic.title }}</td>
+                    <td>{{ comic.category }}</td>
+                    <td>${{ comic.price }}</td>
+                    <td>{{ comic.stock }}</td>
+                    <td>{{ comic.min_stock }}</td>
+                    <td>{{ comic.max_stock }}</td>
+                    <td>
+                        <span class="stock-badge {{ comic.stock_status }}">
+                            {% if comic.stock_status == 'low' %}
+                                Stock Bajo
+                            {% elif comic.stock_status == 'normal' %}
+                                Normal
+                            {% elif comic.stock_status == 'high' %}
+                                Sobre Almacenado
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td class="actions-cell">
+                        <a href="/comics/{{ comic.id }}/editar" class="edit-button" title="Editar"><i class="fas fa-edit"></i></a>
+                        <a href="/gestion/stock/{{ comic.id }}/establecer-limites" class="limits-button" title="Establecer límites"><i class="fas fa-sliders-h"></i></a>
+                        <a href="/gestion/crear-pedido-proveedor?comic_id={{ comic.id }}" class="order-button" title="Crear pedido al proveedor"><i class="fas fa-truck"></i></a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="action-buttons">
+        <a href="/gestion/stock/configurar-alertas" class="config-button">Configurar Alertas</a>
+        <a href="/gestion/stock/reporte" class="report-button">Generar Reporte</a>
+        <a href="/gestion/stock/recomendaciones" class="recommend-button">Recomendaciones de Compra</a>
+    </div>
+</div>
+
+<style>
+    .stock-container {
+        padding: 1.5rem;
+    }
+    
+    .summary-cards {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .summary-card {
+        flex: 1;
+        min-width: 250px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .summary-icon {
+        font-size: 2.5rem;
+        margin-right: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+    }
+    
+    .low-stock-icon {
+        color: white;
+        background-color: #f44336;
+    }
+    
+    .normal-stock-icon {
+        color: white;
+        background-color: #4caf50;
+    }
+    
+    .high-stock-icon {
+        color: white;
+        background-color: #ff9800;
+    }
+    
+    .summary-content {
+        flex: 1;
+    }
+    
+    .summary-content h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.1rem;
+    }
+    
+    .summary-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin: 0;
+        line-height: 1.2;
+    }
+    
+    .summary-desc {
+        margin: 0.25rem 0 0 0;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .filters-container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .search-box {
+        display: flex;
+        min-width: 300px;
+    }
+    
+    .search-box input {
+        flex: 1;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px 0 0 4px;
+        font-size: 1rem;
+    }
+    
+    .search-box button {
+        padding: 0.75rem 1rem;
+        background-color: #d32f2f;
+        color: white;
+        border: none;
+        border-radius: 0 4px 4px 0;
+        cursor: pointer;
+    }
+    
+    .filter-options {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .filter-options select {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        min-width: 150px;
+    }
+    
+    .stock-table-container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    
+    .stock-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .stock-table th,
+    .stock-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .stock-table th {
+        background-color: #f5f5f5;
+        font-weight: bold;
+    }
+    
+    .comic-img-cell {
+        width: 80px;
+    }
+    
+    .comic-thumbnail {
+        width: 60px;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    
+    .comic-title-cell {
+        min-width: 200px;
+        font-weight: bold;
+    }
+    
+    .stock-badge {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+    
+    .stock-badge.low {
+        background-color: #f44336;
+        color: white;
+    }
+    
+    .stock-badge.normal {
+        background-color: #4caf50;
+        color: white;
+    }
+    
+    .stock-badge.high {
+        background-color: #ff9800;
+        color: white;
+    }
+    
+    .stock-row.low td {
+        background-color: rgba(244, 67, 54, 0.05);
+    }
+    
+    .stock-row.high td {
+        background-color: rgba(255, 152, 0, 0.05);
+    }
+    
+    .actions-cell {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .edit-button, .limits-button, .order-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+    
+    .edit-button {
+        background-color: #2196f3;
+        color: white;
+    }
+    
+    .limits-button {
+        background-color: #673ab7;
+        color: white;
+    }
+    
+    .order-button {
+        background-color: #ff9800;
+        color: white;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+    
+    .config-button, .report-button, .recommend-button {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+        color: white;
+    }
+    
+    .config-button {
+        background-color: #673ab7;
+    }
+    
+    .report-button {
+        background-color: #2196f3;
+    }
+    
+    .recommend-button {
+        background-color: #4caf50;
+    }
+    
+    .config-button:hover, .report-button:hover, .recommend-button:hover,
+    .edit-button:hover, .limits-button:hover, .order-button:hover {
+        opacity: 0.9;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Referencias a elementos del DOM
+        const searchInput = document.getElementById('stockSearch');
+        const searchButton = document.querySelector('.search-box button');
+        const stockFilter = document.getElementById('stockFilter');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const stockRows = document.querySelectorAll('.stock-row');
+        
+        // Función para filtrar por texto de búsqueda
+        function filterBySearch() {
+            const searchText = searchInput.value.toLowerCase();
+            
+            stockRows.forEach(row => {
+                const title = row.querySelector('.comic-title-cell').textContent.toLowerCase();
+                
+                if (title.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // Función para filtrar por estado de stock
+        function filterByStockStatus() {
+            const selectedStatus = stockFilter.value;
+            
+            stockRows.forEach(row => {
+                // Si no hay filtro seleccionado, mostrar todas las filas
+                if (!selectedStatus) {
+                    row.style.display = '';
+                    return;
+                }
+                
+                // Mostrar fila si coincide con el estado seleccionado
+                if (row.classList.contains(selectedStatus)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // Función para filtrar por categoría
+        function filterByCategory() {
+            const selectedCategory = categoryFilter.value;
+            
+            stockRows.forEach(row => {
+                // Si no hay filtro seleccionado, mostrar todas las filas
+                if (!selectedCategory) {
+                    row.style.display = '';
+                    return;
+                }
+                
+                const category = row.children[2].textContent.toLowerCase();
+                
+                // Mostrar fila si coincide con la categoría seleccionada
+                if (category === selectedCategory) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // Función para aplicar todos los filtros
+        function applyFilters() {
+            stockRows.forEach(row => {
+                row.style.display = '';
+            });
+            
+            // Aplicar filtros en secuencia
+            filterBySearch();
+            filterByStockStatus();
+            filterByCategory();
+        }
+        
+        // Event listeners
+        searchButton.addEventListener('click', applyFilters);
+        
+        searchInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                applyFilters();
+            }
+        });
+        
+        // Aplicar filtros cuando cambia la selección
+        stockFilter.addEventListener('change', applyFilters);
+        categoryFilter.addEventListener('change', applyFilters);
+    });
+</script>
+{% endblock %}

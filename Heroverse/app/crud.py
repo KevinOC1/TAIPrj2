@@ -104,3 +104,32 @@ def add_detalle_pedido(db: Session, detalle: schemas.DetallePedidoCreate, pedido
     db.commit()
     db.refresh(db_detalle)
     return db_detalle
+
+def establecer_limite_stock(db: Session, comic_id: int, limite_minimo: int):
+    """
+    Establecer el límite mínimo de stock para un cómic
+    :param db: Sesión de base de datos
+    :param comic_id: ID del cómic
+    :param limite_minimo: Nuevo límite mínimo de stock
+    :return: Cómic actualizado o None si no se encuentra
+    """
+    try:
+        # Validate input
+        if limite_minimo < 0:
+            raise ValueError("El límite mínimo no puede ser negativo")
+        
+        comic = get_comic(db, comic_id)
+        if not comic:
+            return None
+        
+        # Asegurarse de que el límite no sea mayor que el stock actual
+        comic.limite_minimo = min(limite_minimo, comic.stock)
+        
+        db.commit()
+        db.refresh(comic)
+        return comic
+    except Exception as e:
+        # Revertir la transacción en caso de error
+        db.rollback()
+        print(f"Error al establecer límite de stock: {e}")
+        raise

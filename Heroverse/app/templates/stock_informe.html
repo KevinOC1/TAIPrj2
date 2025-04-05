@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Informe de Stock{% endblock %}
+
+{% block content %}
+<div class="inventory-container">
+    <h2>Informe de Stock Crítico</h2>
+    
+    {% if comics %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Título del Cómic</th>
+                    <th>Stock Actual</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for comic in comics %}
+                <tr class="{% if comic.stock <= 5 %}critical-stock{% else %}low-stock{% endif %}">
+                    <td>{{ comic.title }}</td>
+                    <td>{{ comic.stock }}</td>
+                    <td>
+                        <a href="/comics/{{ comic.id }}/editar" class="modify-button">Añadir Stock</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>Todos los cómics tienen stock suficiente.</p>
+        <p>No hay cómics con stock bajo en este momento.</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .critical-stock {
+        background-color: #ffebee;
+    }
+    
+    .low-stock {
+        background-color: #fff3e0;
+    }
+    
+    .critical-stock td {
+        color: #d32f2f;
+    }
+    
+    .low-stock td {
+        color: #f57c00;
+    }
+    
+    .modify-button {
+        display: inline-block;
+        background-color: #ff9800;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+    
+    .modify-button:hover {
+        background-color: #f57c00;
+    }
+</style>
+{% endblock %}

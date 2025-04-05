@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Transferir Stock{% endblock %}
+
+{% block content %}
+<div class="edit-comic-container">
+    <h2>Transferir Stock</h2>
+    
+    <form action="/stock/transferir" method="post" class="comic-edit-form">
+        <div class="form-group">
+            <label for="comic_origen_id">Cómic de Origen:</label>
+            <select id="comic_origen_id" name="comic_origen_id" required class="form-control">
+                <option value="">Selecciona un cómic de origen</option>
+                {% for comic in comics %}
+                <option value="{{ comic.id }}" data-stock="{{ comic.stock }}">
+                    {{ comic.title }} (Stock: {{ comic.stock }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="comic_destino_id">Cómic de Destino:</label>
+            <select id="comic_destino_id" name="comic_destino_id" required class="form-control">
+                <option value="">Selecciona un cómic de destino</option>
+                {% for comic in comics %}
+                <option value="{{ comic.id }}">
+                    {{ comic.title }} (Stock: {{ comic.stock }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="cantidad">Cantidad a Transferir:</label>
+            <input 
+                type="number" 
+                id="cantidad" 
+                name="cantidad" 
+                required 
+                class="form-control"
+                min="1"
+            >
+            <small class="form-text text-muted">
+                Ingresa la cantidad de unidades a transferir.
+            </small>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="save-button">Transferir Stock</button>
+            <a href="/inventario" class="cancel-button">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const origen = document.getElementById('comic_origen_id');
+        const destino = document.getElementById('comic_destino_id');
+        const cantidad = document.getElementById('cantidad');
+        
+        // Prevenir transferencia al mismo cómic
+        destino.addEventListener('change', function() {
+            if (origen.value === this.value) {
+                alert('No puedes transferir stock al mismo cómic');
+                this.selectedIndex = 0;
+            }
+        });
+        
+        // Validar cantidad máxima
+        cantidad.addEventListener('change', function() {
+            const origenSeleccionado = origen.options[origen.selectedIndex];
+            const stockOrigen = parseInt(origenSeleccionado.getAttribute('data-stock'));
+            
+            if (parseInt(this.value) > stockOrigen) {
+                alert(`No puedes transferir más de ${stockOrigen} unidades`);
+                this.value = stockOrigen;
+            }
+        });
+    });
+</script>
+
+<style>
+    .form-text {
+        display: block;
+        margin-top: 0.5rem;
+        color: #666;
+    }
+</style>
+{% endblock %}

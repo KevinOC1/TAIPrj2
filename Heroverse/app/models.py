@@ -14,6 +14,8 @@ class Comic(Base):
     stock = Column(Integer)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    limite_minimo = Column(Integer, nullable=True, default=10)  
+
 
 class Cliente(Base):
     __tablename__ = "clientes"
@@ -24,6 +26,9 @@ class Cliente(Base):
     telefono = Column(String)
     direccion = Column(String)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    # Relación con pedidos
+    pedidos = relationship("Pedido", back_populates="cliente")
 
 class Proveedor(Base):
     __tablename__ = "proveedores"
@@ -49,9 +54,6 @@ class Pedido(Base):
     # Relación con los detalles del pedido
     detalles = relationship("DetallePedido", back_populates="pedido")
 
-# Añadimos la relación en la clase Cliente
-Cliente.pedidos = relationship("Pedido", back_populates="cliente")
-
 class DetallePedido(Base):
     __tablename__ = "detalles_pedido"
 
@@ -69,6 +71,20 @@ class DetallePedido(Base):
     def subtotal(self):
         return self.cantidad * self.precio_unitario
 
+class MovimientoStock(Base):
+    __tablename__ = "movimientos_stock"
+
+    id = Column(Integer, primary_key=True, index=True)
+    comic_id = Column(Integer, ForeignKey("comics.id"))
+    cantidad = Column(Integer)
+    tipo = Column(String)  # 'entrada' o 'salida'
+    razon = Column(String, nullable=True)
+    proveedor_id = Column(Integer, ForeignKey("proveedores.id"), nullable=True)
+    fecha = Column(DateTime, default=datetime.datetime.utcnow)
+
+    # Relaciones
+    comic = relationship("Comic")
+    proveedor = relationship("Proveedor")  # Remove 'nullable=True'
 # Datos iniciales para cómics 
 def init_db(db):
     # Verificar si ya hay cómics en la base de datos

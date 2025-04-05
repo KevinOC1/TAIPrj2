@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Pedido a Proveedor{% endblock %}
+
+{% block extra_css %}
+<style>
+    .comic-selector {
+        margin-bottom: 1rem;
+        border: 1px solid #ddd;
+        padding: 1rem;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+    }
+    
+    .comic-details {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .comic-image-small {
+        width: 60px;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    
+    .comic-info {
+        flex: 1;
+    }
+    
+    .comic-title {
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+    }
+    
+    .comic-price {
+        color: #666;
+    }
+    
+    .quantity-selector {
+        width: 80px;
+    }
+    
+    .price-input {
+        width: 120px;
+    }
+    
+    .subtotal {
+        font-weight: bold;
+        text-align: right;
+        width: 100px;
+    }
+    
+    .add-more-comics {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 1rem;
+    }
+    
+    .comics-container {
+        margin-top: 1.5rem;
+    }
+    
+    .remove-comic {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    
+    .datepicker {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-container">
+    <h2>Crear Nuevo Pedido a Proveedor</h2>
+    
+    {% if not proveedores %}
+    <div class="empty-state">
+        <p>No hay proveedores registrados.</p>
+        <p>Antes de crear un pedido, debes <a href="/proveedores-crear">registrar al menos un proveedor</a>.</p>
+    </div>
+    {% elif not comics %}
+    <div class="empty-state">
+        <p>No hay cómics en inventario.</p>
+        <p>Antes de crear un pedido, debes <a href="/comics-crear">añadir al menos un cómic al inventario</a>.</p>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body">
+            <form action="/gestion/pedidos-proveedor/crear" method="post" id="pedidoForm">
+                <div class="form-group">
+                    <label for="proveedor">Proveedor:</label>
+                    <select id="proveedor" name="proveedor_id" required class="form-control">
+                        <option value="">Selecciona un proveedor</option>
+                        {% for proveedor in proveedores %}
+                        <option value="{{ proveedor.id }}">{{ proveedor.nombre }} ({{ proveedor.email }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="fecha_entrega">Fecha de entrega esperada:</label>
+                    <input type="date" id="fecha_entrega" name="fecha_entrega_esperada" class="datepicker" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notas">Notas:</label>
+                    <textarea id="notas" name="notas" rows="3" class="form-control"></textarea>
+                </div>
+                
+                <h3>Selecciona los productos</h3>
+                <div id="comicsContainer" class="comics-container">
+                    <div class="comic-selector">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Cómic:</label>
+                                <select name="comic_ids[]" required class="form-control comic-select">
+                                    <option value="">Selecciona un cómic</option>
+                                    {% for comic in comics %}
+                                    <option value="{{ comic.id }}" 
+                                            data-price="{{ comic.price }}" 
+                                            data-stock="{{ comic.stock }}"
+                                            data-image="{{ comic.image_url }}"
+                                            data-isbn="{{ comic.isbn|default('N/A') }}">
+                                        {{ comic.title }} - ${{ comic.price }} ({{ comic.stock }} en stock)
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Precio Unitario ($):</label>
+                                <input type="number" name="precios[]" value="0.00" min="0" step="0.01" class="form-control price-input" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Cantidad:</label>
+                                <input type="number" name="cantidades[]" value="1" min="1" class="form-control quantity-selector" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Subtotal:</label>
+                                <div class="subtotal">$0.00</div>
+                            </div>
+                            
+                            <button type="button" class="remove-comic" style="visibility: hidden;"><i class="fas fa-times"></i></button>
+                        </div>
+                        
+                        <div class="comic-details" style="display: none;">
+                            <img src="" alt="Portada del cómic" class="comic-image-small">
+                            <div class="comic-info">
+                                <div class="comic-title"></div>
+                                <div class="comic-isbn"></div>
+                                <div class="comic-stock"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="button" id="addMoreComics" class="add-more-comics">+ Añadir más productos</button>
+                
+                <div class="form-group" style="margin-top: 2rem;">
+                    <label>Total estimado: $<span id="totalEstimado">0.00</span></label>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="save-button">Crear Pedido</button>
+                    <a href="/gestion/pedidos-proveedor" class="cancel-button">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .edit-container {
+        padding: 1.5rem;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-top: 1.5rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-row {
+        display: flex;
+        align-items: flex-end;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .form-row .form-group {
+        flex: 1;
+        min-width: 120px;
+        margin-bottom: 0;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+        color: #555;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+    }
+    
+    .save-button {
+        background-color: #4caf50;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .cancel-button {
+        background-color: #f44336;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+    
+    .save-button:hover, .cancel-button:hover {
+        opacity: 0.9;
+    }
+    
+    .empty-state {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        text-align: center;
+        margin-top: 2rem;
+    }
+    
+    .empty-state p {
+        margin-bottom: 1rem;
+        color: #666;
+    }
+    
+    .empty-state a {
+        color: #d32f2f;
+        font-weight: bold;
+        text-decoration: none;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verificar si hay un ID de cómic preseleccionado
+        const preselectedComicId = "{{comic_preseleccionado_id}}";
+        
+        if (preselectedComicId && preselectedComicId !== "None") {
+            // Buscar y seleccionar el cómic
+            const comicSelect = document.querySelector('.comic-select');
+            if (comicSelect) {
+                for (let i = 0; i < comicSelect.options.length; i++) {
+                    if (comicSelect.options[i].value === preselectedComicId) {
+                        comicSelect.selectedIndex = i;
+                        // Disparar manualmente el evento change
+                        comicSelect.dispatchEvent(new Event('change'));
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Manejar la selección de cómics
+        document.body.addEventListener('change', function(e) {
+            if (e.target.classList.contains('comic-select')) {
+                const comicSelector = e.target.closest('.comic-selector');
+                const comicDetails = comicSelector.querySelector('.comic-details');
+                const selectedOption = e.target.options[e.target.selectedIndex];
+                const priceInput = comicSelector.querySelector('input[name="precios[]"]');
+                
+                if (e.target.value) {
+                    const price = selectedOption.getAttribute('data-price');
+                    const stock = selectedOption.getAttribute('data-stock');
+                    const image = selectedOption.getAttribute('data-image');
+                    const isbn = selectedOption.getAttribute('data-isbn');
+                    const title = selectedOption.text.split(' - ')[0];
+                    
+                    comicSelector.querySelector('.comic-image-small').src = image;
+                    comicSelector.querySelector('.comic-title').textContent = title;
+                    comicSelector.querySelector('.comic-isbn').textContent = `ISBN: ${isbn}`;
+                    comicSelector.querySelector('.comic-stock').textContent = `Stock actual: ${stock} unidades`;
+                    
+                    // Establecer el precio sugerido
+                    priceInput.value = price;
+                    
+                    comicDetails.style.display = 'flex';
+                } else {
+                    comicDetails.style.display = 'none';
+                    priceInput.value = "0.00";
+                }
+                
+                updateSubtotal(comicSelector);
+                updateTotal();
+            }
+            
+            if (e.target.classList.contains('quantity-selector') || e.target.classList.contains('price-input')) {
+                const comicSelector = e.target.closest('.comic-selector');
+                updateSubtotal(comicSelector);
+                updateTotal();
+            }
+        });
+        
+        // Función para actualizar el subtotal de una línea
+        function updateSubtotal(comicSelector) {
+            const quantity = comicSelector.querySelector('.quantity-selector').value;
+            const price = comicSelector.querySelector('.price-input').value;
+            const subtotalElement = comicSelector.querySelector('.subtotal');
+            
+            const subtotal = quantity * price;
+            subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
+        }
+        
+        // Función para actualizar el total del pedido
+        function updateTotal() {
+            let total = 0;
+            const comicSelectors = document.querySelectorAll('.comic-selector');
+            
+            comicSelectors.forEach(selector => {
+                const quantity = selector.querySelector('.quantity-selector').value;
+                const price = selector.querySelector('.price-input').value;
+                
+                if (quantity && price) {
+                    total += quantity * price;
+                }
+            });
+            
+            document.getElementById('totalEstimado').textContent = total.toFixed(2);
+        }
+        
+        // Añadir más cómics
+        document.getElementById('addMoreComics').addEventListener('click', function() {
+            const comicsContainer = document.getElementById('comicsContainer');
+            const comicSelectors = document.querySelectorAll('.comic-selector');
+            
+            // Hacer visible el botón de eliminar en todos los selectores existentes
+            comicSelectors.forEach(selector => {
+                selector.querySelector('.remove-comic').style.visibility = 'visible';
+            });
+            
+            // Clonar el primer selector
+            const comicSelector = document.querySelector('.comic-selector').cloneNode(true);
+            
+            // Resetear valores
+            const comicSelect = comicSelector.querySelector('.comic-select');
+            comicSelect.selectedIndex = 0;
+            comicSelector.querySelector('.comic-details').style.display = 'none';
+            comicSelector.querySelector('.quantity-selector').value = 1;
+            comicSelector.querySelector('.price-input').value = "0.00";
+            comicSelector.querySelector('.subtotal').textContent = "$0.00";
+            
+            // Mostrar el botón de eliminar
+            comicSelector.querySelector('.remove-comic').style.visibility = 'visible';
+            
+            comicsContainer.appendChild(comicSelector);
+        });
+        
+        // Eliminar una línea de cómic
+        document.body.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-comic')) {
+                const comicSelectors = document.querySelectorAll('.comic-selector');
+                
+                // Solo permitir eliminar si hay más de un selector
+                if (comicSelectors.length > 1) {
+                    const comicSelector = e.target.closest('.comic-selector');
+                    comicSelector.remove();
+                    updateTotal();
+                    
+                    // Si solo queda un selector, ocultar su botón de eliminar
+                    if (document.querySelectorAll('.comic-selector').length === 1) {
+                        document.querySelector('.remove-comic').style.visibility = 'hidden';
+                    }
+                }
+            }
+        });
+        
+        // Establecer la fecha mínima como hoy para la fecha de entrega esperada
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+        
+        document.getElementById('fecha_entrega').min = todayStr;
+    });
+</script>
+{% endblock %}

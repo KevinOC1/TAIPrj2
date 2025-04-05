@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}HeroVerse Comics{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/styles.css">
     {% block extra_css %}{% endblock %}
 </head>
@@ -25,6 +26,12 @@
                 <li><a href="/pedidos">Pedidos</a></li>
                 <li><a href="/clientes">Clientes</a></li>
                 <li><a href="/proveedores">Proveedores</a></li>
+                <!-- Nueva sección de Gestión Comercial -->
+                <li class="section-title">Gestión Comercial</li>
+                <li><a href="/gestion">Dashboard</a></li>
+                <li><a href="/gestion/stock">Control de Stock</a></li>
+                <li><a href="/gestion/clientes-frecuentes">Clientes VIP</a></li>
+                <li><a href="/gestion/pedidos-proveedor">Pedidos a Proveedores</a></li>
             </ul>
         </nav>
         

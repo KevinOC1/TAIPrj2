@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}HeroVerse Comics - Gestión Comercial{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h2>Panel de Gestión Comercial</h2>
+    
+    <div class="dashboard-grid">
+        <!-- Módulo 1: Control de Stock -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3>Control de Stock</h3>
+            </div>
+            <div class="card-body">
+                <p>Módulo para el control eficiente de stock, evitando desabastos y sobre almacenamiento.</p>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">{{ stats.low_stock }}</span>
+                        <span class="stat-label">Productos con stock bajo</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{ stats.overstocked }}</span>
+                        <span class="stat-label">Productos sobre almacenados</span>
+                    </div>
+                </div>
+                <a href="/gestion/stock" class="dashboard-button">Gestionar Stock</a>
+            </div>
+        </div>
+        
+        <!-- Módulo 2: Gestión de Proveedores -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3>Gestión de Proveedores</h3>
+            </div>
+            <div class="card-body">
+                <p>Módulo de comunicación y gestión eficiente de proveedores.</p>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">{{ stats.total_proveedores }}</span>
+                        <span class="stat-label">Proveedores activos</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{ stats.pending_orders }}</span>
+                        <span class="stat-label">Pedidos pendientes</span>
+                    </div>
+                </div>
+                <a href="/proveedores" class="dashboard-button">Gestionar Proveedores</a>
+            </div>
+        </div>
+        
+        <!-- Módulo 3: Gestión de Clientes -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3>Gestión de Clientes</h3>
+            </div>
+            <div class="card-body">
+                <p>Módulo de comunicación y gestión eficiente de clientes.</p>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">{{ stats.total_clientes }}</span>
+                        <span class="stat-label">Clientes registrados</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{ stats.new_clients }}</span>
+                        <span class="stat-label">Nuevos este mes</span>
+                    </div>
+                </div>
+                <a href="/clientes" class="dashboard-button">Gestionar Clientes</a>
+            </div>
+        </div>
+        
+        <!-- Módulo 4: Clientes Frecuentes -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3>Clientes Frecuentes</h3>
+            </div>
+            <div class="card-body">
+                <p>Módulo personalizado para clientes frecuentes con seguimiento y promociones personalizadas.</p>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">{{ stats.frequent_clients }}</span>
+                        <span class="stat-label">Clientes frecuentes</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{ stats.active_promos }}</span>
+                        <span class="stat-label">Promociones activas</span>
+                    </div>
+                </div>
+                <a href="/gestion/clientes-frecuentes" class="dashboard-button">Gestionar Programa</a>
+            </div>
+        </div>
+        
+        <!-- Módulo 5: Pedidos a Proveedores -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3>Pedidos a Proveedores</h3>
+            </div>
+            <div class="card-body">
+                <p>Gestión de pedidos al proveedor.</p>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">{{ stats.supplier_orders }}</span>
+                        <span class="stat-label">Pedidos activos</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{ stats.arriving_soon }}</span>
+                        <span class="stat-label">Próximos a llegar</span>
+                    </div>
+                </div>
+                <a href="/gestion/pedidos-proveedor" class="dashboard-button">Gestionar Pedidos</a>
+            </div>
+        </div>
+        
+        <!-- Módulo 6: Pedidos de Clientes -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3>Pedidos de Clientes</h3>
+            </div>
+            <div class="card-body">
+                <p>Gestión de pedidos del cliente.</p>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">{{ stats.customer_orders }}</span>
+                        <span class="stat-label">Pedidos activos</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{ stats.pending_delivery }}</span>
+                        <span class="stat-label">Pendientes de entrega</span>
+                    </div>
+                </div>
+                <a href="/pedidos" class="dashboard-button">Gestionar Pedidos</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-container {
+        padding: 1.5rem;
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .dashboard-card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .card-header {
+        background-color: #d32f2f;
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .card-header h3 {
+        margin: 0;
+        color: white;
+        font-size: 1.2rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        height: calc(100% - 3.5rem);
+    }
+    
+    .card-body p {
+        margin-top: 0;
+        color: #666;
+        margin-bottom: 1rem;
+    }
+    
+    .card-stats {
+        display: flex;
+        justify-content: space-between;
+        margin: 1rem 0;
+        flex-grow: 1;
+    }
+    
+    .stat-item {
+        text-align: center;
+        flex: 1;
+    }
+    
+    .stat-value {
+        display: block;
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #d32f2f;
+    }
+    
+    .stat-label {
+        display: block;
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 0.25rem;
+    }
+    
+    .dashboard-button {
+        display: block;
+        background-color: #d32f2f;
+        color: white;
+        padding: 0.75rem 1rem;
+        text-align: center;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: background-color 0.3s;
+        margin-top: auto;
+    }
+    
+    .dashboard-button:hover {
+        background-color: #b71c1c;
+    }
+</style>
+{% endblock %}

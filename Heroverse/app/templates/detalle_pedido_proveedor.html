@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+
+{% block title %}Detalles del Pedido a Proveedor #{{ pedido.id }}{% endblock %}
+
+{% block content %}
+<div class="view-container">
+    <h2>Detalles del Pedido a Proveedor #{{ pedido.id }}</h2>
+    
+    <div class="status-timeline">
+        <div class="timeline-item {% if pedido.estado in ['pending', 'confirmed', 'processing', 'shipping', 'completed'] %}active{% endif %}">
+            <div class="timeline-icon"><i class="fas fa-file"></i></div>
+            <div class="timeline-content">
+                <h3>Creado</h3>
+                <p>{{ pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M') }}</p>
+            </div>
+        </div>
+        <div class="timeline-item {% if pedido.estado in ['confirmed', 'processing', 'shipping', 'completed'] %}active{% endif %}">
+            <div class="timeline-icon"><i class="fas fa-check"></i></div>
+            <div class="timeline-content">
+                <h3>Confirmado</h3>
+                <p>{% if pedido.estado in ['confirmed', 'processing', 'shipping', 'completed'] %}{{ pedido.fecha_confirmacion.strftime('%d/%m/%Y %H:%M') }}{% else %}Pendiente{% endif %}</p>
+            </div>
+        </div>
+        <div class="timeline-item {% if pedido.estado in ['processing', 'shipping', 'completed'] %}active{% endif %}">
+            <div class="timeline-icon"><i class="fas fa-cog"></i></div>
+            <div class="timeline-content">
+                <h3>En Proceso</h3>
+                <p>{% if pedido.estado in ['processing', 'shipping', 'completed'] %}{{ pedido.fecha_procesado.strftime('%d/%m/%Y %H:%M') }}{% else %}Pendiente{% endif %}</p>
+            </div>
+        </div>
+        <div class="timeline-item {% if pedido.estado in ['shipping', 'completed'] %}active{% endif %}">
+            <div class="timeline-icon"><i class="fas fa-truck"></i></div>
+            <div class="timeline-content">
+                <h3>En Tránsito</h3>
+                <p>{% if pedido.estado in ['shipping', 'completed'] %}{{ pedido.fecha_envio.strftime('%d/%m/%Y %H:%M') }}{% else %}Pendiente{% endif %}</p>
+            </div>
+        </div>
+        <div class="timeline-item {% if pedido.estado == 'completed' %}active{% endif %}">
+            <div class="timeline-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="timeline-content">
+                <h3>Completado</h3>
+                <p>{% if pedido.estado == 'completed' %}{{ pedido.fecha_entrega_real.strftime('%d/%m/%Y %H:%M') }}{% else %}Pendiente{% endif %}</p>
+            </div>
+        </div>
+        {% if pedido.estado == 'cancelled' %}
+        <div class="timeline-item cancelled active">
+            <div class="timeline-icon"><i class="fas fa-times-circle"></i></div>
+            <div class="timeline-content">
+                <h3>Cancelado</h3>
+                <p>{{ pedido.fecha_cancelacion.strftime('%d/%m/%Y %H:%M') }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="card-grid">
+        <div class="card">
+            <div class="card-header">
+                <h3>Información del Pedido</h3>
+            </div>
+            <div class="card-body">
+                <table class="info-table">
+                    <tr>
+                        <th>ID:</th>
+                        <td>#{{ pedido.id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Fecha de Pedido:</th>
+                        <td>{{ pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M') }}</td>
+                    </tr>
+                    <tr>
+                        <th>Estado:</th>
+                        <td>
+                            <span class="status-badge status-{{ pedido.estado }}">
+                                {% if pedido.estado == 'pending' %}Pendiente
+                                {% elif pedido.estado == 'confirmed' %}Confirmado
+                                {% elif pedido.estado == 'processing' %}En Proceso
+                                {% elif pedido.estado == 'shipping' %}En Tránsito
+                                {% elif pedido.estado == 'completed' %}Completado
+                                {% elif pedido.estado == 'cancelled' %}Cancelado
+                                {% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Fecha Entrega Esperada:</th>
+                        <td>{{ pedido.fecha_entrega_esperada.strftime('%d/%m/%Y') if pedido.fecha_entrega_esperada else "No especificada" }}</td>
+                    </tr>
+                    {% if pedido.fecha_entrega_real %}
+                    <tr>
+                        <th>Fecha Entrega Real:</th>
+                        <td>{{ pedido.fecha_entrega_real.strftime('%d/%m/%Y') }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th>Total:</th>
+                        <td class="total-price">${{ pedido.total }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Información del Proveedor</h3>
+            </div>
+            <div class="card-body">
+                <table class="info-table">
+                    <tr>
+                        <th>Nombre:</th>
+                        <td>{{ pedido.proveedor.nombre }}</td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td>{{ pedido.proveedor.email }}</td>
+                    </tr>
+                    {% if pedido.proveedor.telefono %}
+                    <tr>
+                        <th>Teléfono:</th>
+                        <td>{{ pedido.proveedor.telefono }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if pedido.proveedor.contacto_nombre %}
+                    <tr>
+                        <th>Contacto:</th>
+                        <td>{{ pedido.proveedor.contacto_nombre }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+                <div class="link-button-container">
+                    <a href="/proveedores/{{ pedido.proveedor.id }}" class="link-button">Ver detalles del proveedor</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Productos</h3>
+        </div>
+        <div class="card-body">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>ISBN</th>
+                        <th>Precio Unitario</th>
+                        <th>Cantidad</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in pedido.detalles %}
+                    <tr>
+                        <td class="product-cell">
+                            <div class="product-info">
+                                <img src="{{ detalle.comic.image_url }}" alt="{{ detalle.comic.title }}" class="product-thumbnail">
+                                <span>{{ detalle.comic.title }}</span>
+                            </div>
+                        </td>
+                        <td>{{ detalle.comic.isbn or "N/A" }}</td>
+                        <td>${{ detalle.precio_unitario }}</td>
+                        <td>{{ detalle.cantidad }}</td>
+                        <td>${{ detalle.subtotal }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" class="text-right"><strong>Total:</strong></td>
+                        <td><strong>${{ pedido.total }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    
+    {% if pedido.notas %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Notas</h3>
+        </div>
+        <div class="card-body">
+            <p>{{ pedido.notas }}</p>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="actions-container mt-4">
+        <a href="/gestion/pedidos-proveedor" class="secondary-button">Volver a Pedidos</a>
+        
+        <div>
+            {% if pedido.estado == 'pending' %}
+            <a href="/gestion/pedidos-proveedor/{{ pedido.id }}/editar" class="edit-button">Editar Pedido</a>
+            <a href="/gestion/pedidos-proveedor/{{ pedido.id }}/estado?nuevo_estado=confirmed" class="confirm-button">Confirmar Pedido</a>
+            <a href="/gestion/pedidos-proveedor/{{ pedido.id }}/estado?nuevo_estado=cancelled" class="cancel-button">Cancelar Pedido</a>
+            {% elif pedido.estado == 'confirmed' %}
+            <a href="/gestion/pedidos-proveedor/{{ pedido.id }}/editar" class="edit-button">Editar Pedido</a>
+            <a href="/gestion/pedidos-proveedor/{{ pedido.id }}/estado?nuevo_estado=processing" class="process-button">Marcar En Proceso</a>
+            <a href="/gestion/pedidos-proveedor/{{ pedido.id }}/estado?nuevo_estado=cancelled" class="cancel-button">Cancelar Pedido</a>
+            {% elif pedido.estado == 'processing' %}
+            <a href="/gestion/pedidos-proveedor/{{ pedido.id }}/estado?nuevo_estado=shipping" class="shipping-button">Marcar En Tránsito</a>
+            {% elif pedido.estado == 'shipping' %}
+            <a href="/gestion/pedidos-proveedor/{{ pedido.id }}/recepcionar" class="receive-button">Recepcionar Pedido</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .view-container {
+        padding: 1.5rem;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .status-timeline {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+        padding: 2rem 0;
+    }
+    
+    .status-timeline::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: #ddd;
+        z-index: 0;
+    }
+    
+    .timeline-item {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        z-index: 1;
+    }
+    
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #fff;
+        border: 2px solid #ddd;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        color: #aaa;
+        font-size: 1.2rem;
+    }
+    
+    .timeline-item.active .timeline-icon {
+        background-color: #4caf50;
+        border-color: #4caf50;
+        color: white;
+    }
+    
+    .timeline-item.cancelled .timeline-icon {
+        background-color: #f44336;
+        border-color: #f44336;
+        color: white;
+    }
+    
+    .timeline-content {
+        text-align: center;
+    }
+    
+    .timeline-content h3 {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+    
+    .timeline-content p {
+        margin: 0.25rem 0 0 0;
+        font-size: 0.8rem;
+        color: #666;
+    }
+    
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .mt-4 {
+        margin-top: 1.5rem;
+    }
+    
+    .card-header {
+        background-color: #f5f5f5;
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .card-header h3 {
+        margin: 0;
+        color: #333;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .info-table th,
+    .info-table td {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .info-table th {
+        width: 40%;
+        text-align: left;
+        color: #666;
+    }
+    
+    .info-table tr:last-child th,
+    .info-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+    
+    .status-pending {
+        background-color: #ff9800;
+        color: white;
+    }
+    
+    .status-confirmed {
+        background-color: #2196f3;
+        color: white;
+    }
+    
+    .status-processing {
+        background-color: #673ab7;
+        color: white;
+    }
+    
+    .status-shipping {
+        background-color: #009688;
+        color: white;
+    }
+    
+    .status-completed {
+        background-color: #4caf50;
+        color: white;
+    }
+    
+    .status-cancelled {
+        background-color: #f44336;
+        color: white;
+    }
+    
+    .total-price {
+        font-weight: bold;
+        font-size: 1.1rem;
+        color: #d32f2f;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .data-table th {
+        background-color: #f9f9f9;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .data-table tfoot tr td {
+        border-top: 2px solid #ddd;
+        border-bottom: none;
+        padding-top: 1rem;
+    }
+    
+    .text-right {
+        text-align: right;
+    }
+    
+    .product-cell {
+        min-width: 250px;
+    }
+    
+    .product-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .product-thumbnail {
+        width: 50px;
+        height: 75px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    
+    .link-button-container {
+        margin-top: 1rem;
+    }
+    
+    .link-button {
+        display: inline-block;
+        background-color: #f0f0f0;
+        color: #333;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+    
+    .link-button:hover {
+        background-color: #e0e0e0;
+    }
+    
+    .actions-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+    }
+    
+    .actions-container > div {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .secondary-button,
+    .edit-button,
+    .confirm-button,
+    .process-button,
+    .shipping-button,
+    .receive-button,
+    .cancel-button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    
+    .secondary-button {
+        background-color: #f0f0f0;
+        color: #333;
+    }
+    
+    .edit-button {
+        background-color: #ff9800;
+        color: white;
+    }
+    
+    .confirm-button {
+        background-color: #2196f3;
+        color: white;
+    }
+    
+    .process-button {
+        background-color: #673ab7;
+        color: white;
+    }
+    
+    .shipping-button {
+        background-color: #009688;
+        color: white;
+    }
+    
+    .receive-button {
+        background-color: #4caf50;
+        color: white;
+    }
+    
+    .cancel-button {
+        background-color: #f44336;
+        color: white;
+    }
+    
+    .secondary-button:hover,
+    .edit-button:hover,
+    .confirm-button:hover,
+    .process-button:hover,
+    .shipping-button:hover,
+    .receive-button:hover,
+    .cancel-button:hover {
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}

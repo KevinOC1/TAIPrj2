@@ -1,0 +1,812 @@
+{% extends "base.html" %}
+
+{% block title %}HeroVerse Comics - Clientes Frecuentes{% endblock %}
+
+{% block content %}
+<div class="frequent-clients-container">
+    <h2>Programa de Clientes Frecuentes</h2>
+    
+    <div class="program-stats">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Miembros</h3>
+                <p class="stat-value">{{ stats.members }}</p>
+                <p class="stat-desc">Total de clientes en el programa</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-content">
+                <h3>VIP</h3>
+                <p class="stat-value">{{ stats.vip_members }}</p>
+                <p class="stat-desc">Clientes con nivel VIP</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-gift"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Promociones</h3>
+                <p class="stat-value">{{ stats.active_promos }}</p>
+                <p class="stat-desc">Promociones activas</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Pedidos</h3>
+                <p class="stat-value">{{ stats.vip_orders }}</p>
+                <p class="stat-desc">Pedidos de clientes VIP este mes</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tabs-container">
+        <div class="tabs">
+            <button class="tab active" data-tab="clients">Clientes Frecuentes</button>
+            <button class="tab" data-tab="promotions">Promociones</button>
+            <button class="tab" data-tab="campaigns">Campañas</button>
+        </div>
+        
+        <!-- Tab Content: Clientes Frecuentes -->
+        <div class="tab-content active" id="clients-tab">
+            <div class="filters-container">
+                <div class="search-box">
+                    <input type="text" id="clientSearch" placeholder="Buscar por nombre o email...">
+                    <button type="button"><i class="fas fa-search"></i></button>
+                </div>
+                
+                <div class="filter-options">
+                    <select id="levelFilter">
+                        <option value="">Todos los niveles</option>
+                        <option value="bronze">Bronce</option>
+                        <option value="silver">Plata</option>
+                        <option value="gold">Oro</option>
+                        <option value="vip">VIP</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Email</th>
+                            <th>Nivel</th>
+                            <th>Puntos</th>
+                            <th>Pedidos</th>
+                            <th>Última Compra</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client in frequent_clients %}
+                        <tr>
+                            <td>{{ client.nombre }}</td>
+                            <td>{{ client.email }}</td>
+                            <td>
+                                <span class="level-badge level-{{ client.level }}">
+                                    {{ client.level|capitalize }}
+                                </span>
+                            </td>
+                            <td>{{ client.points }}</td>
+                            <td>{{ client.orders }}</td>
+                            <td>{{ client.last_purchase }}</td>
+                            <td class="actions">
+                                <a href="/clientes/{{ client.id }}" class="view-button" title="Ver perfil"><i class="fas fa-eye"></i></a>
+                                <a href="/gestion/clientes-frecuentes/{{ client.id }}/historial" class="history-button" title="Ver historial"><i class="fas fa-history"></i></a>
+                                <a href="/gestion/clientes-frecuentes/{{ client.id }}/promocion" class="promo-button" title="Enviar promoción"><i class="fas fa-gift"></i></a>
+                                <a href="/gestion/clientes-frecuentes/{{ client.id }}/nivel" class="level-button" title="Ajustar nivel"><i class="fas fa-level-up-alt"></i></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="/gestion/clientes-frecuentes/nuevo" class="add-button">Añadir Cliente al Programa</a>
+                <a href="/gestion/clientes-frecuentes/importar" class="import-button">Importar Clientes</a>
+            </div>
+        </div>
+        
+        <!-- Tab Content: Promociones -->
+        <div class="tab-content" id="promotions-tab">
+            <div class="promotions-grid">
+                {% for promo in promotions %}
+                <div class="promo-card">
+                    <div class="promo-header">
+                        <h3>{{ promo.title }}</h3>
+                        <span class="promo-status {{ promo.status }}">{{ promo.status|capitalize }}</span>
+                    </div>
+                    <div class="promo-details">
+                        <p class="promo-description">{{ promo.description }}</p>
+                        <div class="promo-dates">
+                            <span><i class="fas fa-calendar-alt"></i> {{ promo.start_date }} - {{ promo.end_date }}</span>
+                        </div>
+                        <div class="promo-eligibility">
+                            <span><i class="fas fa-users"></i> Para clientes de nivel: {{ promo.eligible_levels }}</span>
+                        </div>
+                        <div class="promo-stats">
+                            <div class="promo-stat">
+                                <span class="stat-label">Enviadas</span>
+                                <span class="stat-value">{{ promo.sent }}</span>
+                            </div>
+                            <div class="promo-stat">
+                                <span class="stat-label">Usadas</span>
+                                <span class="stat-value">{{ promo.used }}</span>
+                            </div>
+                            <div class="promo-stat">
+                                <span class="stat-label">Conversión</span>
+                                <span class="stat-value">{{ promo.conversion_rate }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="promo-actions">
+                        <a href="/gestion/promociones/{{ promo.id }}/editar" class="edit-promo">Editar</a>
+                        <a href="/gestion/promociones/{{ promo.id }}/enviar" class="send-promo">Enviar</a>
+                        {% if promo.status == 'active' %}
+                        <a href="/gestion/promociones/{{ promo.id }}/pausar" class="pause-promo">Pausar</a>
+                        {% else %}
+                        <a href="/gestion/promociones/{{ promo.id }}/activar" class="activate-promo">Activar</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="action-buttons center">
+                <a href="/gestion/promociones/nueva" class="add-button">Crear Nueva Promoción</a>
+            </div>
+        </div>
+        
+        <!-- Tab Content: Campañas -->
+        <div class="tab-content" id="campaigns-tab">
+            <div class="campaigns-container">
+                <div class="campaigns-list">
+                    {% for campaign in campaigns %}
+                    <div class="campaign-item">
+                        <div class="campaign-header">
+                            <h3>{{ campaign.title }}</h3>
+                            <span class="campaign-status {{ campaign.status }}">{{ campaign.status|capitalize }}</span>
+                        </div>
+                        <div class="campaign-body">
+                            <p>{{ campaign.description }}</p>
+                            <div class="campaign-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">Período:</span>
+                                    <span class="detail-value">{{ campaign.start_date }} - {{ campaign.end_date }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Audiencia:</span>
+                                    <span class="detail-value">{{ campaign.audience }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Alcance:</span>
+                                    <span class="detail-value">{{ campaign.reach }} clientes</span>
+                                </div>
+                            </div>
+                            <div class="campaign-progress">
+                                <div class="progress-bar">
+                                    <div class="progress" data-progress="{{campaign.progress}}"></div>
+                                </div>
+                                <span class="progress-text">{{campaign.progress}}% completado</span>
+                            </div>
+                        </div>
+                        <div class="campaign-footer">
+                            <a href="/gestion/campanas/{{ campaign.id }}/detalle" class="view-campaign">Ver Detalles</a>
+                            <a href="/gestion/campanas/{{ campaign.id }}/editar" class="edit-campaign">Editar</a>
+                            {% if campaign.status == 'active' %}
+                            <a href="/gestion/campanas/{{ campaign.id }}/pausar" class="pause-campaign">Pausar</a>
+                            {% elif campaign.status == 'paused' %}
+                            <a href="/gestion/campanas/{{ campaign.id }}/reanudar" class="resume-campaign">Reanudar</a>
+                            {% elif campaign.status == 'draft' %}
+                            <a href="/gestion/campanas/{{ campaign.id }}/iniciar" class="start-campaign">Iniciar</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="/gestion/campanas/nueva" class="add-button">Crear Nueva Campaña</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .frequent-clients-container {
+        padding: 1.5rem;
+    }
+    
+    .program-stats {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .stat-card {
+        flex: 1;
+        min-width: 200px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .stat-icon {
+        font-size: 2rem;
+        margin-right: 1rem;
+        color: #d32f2f;
+    }
+    
+    .stat-content {
+        flex: 1;
+    }
+    
+    .stat-content h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin: 0;
+        line-height: 1;
+    }
+    
+    .stat-desc {
+        margin: 0.25rem 0 0 0;
+        color: #666;
+        font-size: 0.85rem;
+    }
+    
+    .tabs-container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .tabs {
+        display: flex;
+        background-color: #f5f5f5;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .tab {
+        padding: 1rem 1.5rem;
+        border: none;
+        background: none;
+        font-weight: bold;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .tab:hover {
+        background-color: #e0e0e0;
+    }
+    
+    .tab.active {
+        color: #d32f2f;
+        border-bottom: 3px solid #d32f2f;
+    }
+    
+    .tab-content {
+        display: none;
+        padding: 1.5rem;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    .filters-container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .search-box {
+        display: flex;
+        min-width: 300px;
+    }
+    
+    .search-box input {
+        flex: 1;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px 0 0 4px;
+        font-size: 1rem;
+    }
+    
+    .search-box button {
+        padding: 0.75rem 1rem;
+        background-color: #d32f2f;
+        color: white;
+        border: none;
+        border-radius: 0 4px 4px 0;
+        cursor: pointer;
+    }
+    
+    .filter-options {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .filter-options select {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        min-width: 150px;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+        margin-bottom: 1.5rem;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .data-table th {
+        background-color: #f9f9f9;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .level-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+    
+    .level-bronze {
+        background-color: #cd7f32;
+        color: white;
+    }
+    
+    .level-silver {
+        background-color: #c0c0c0;
+        color: black;
+    }
+    
+    .level-gold {
+        background-color: #ffd700;
+        color: black;
+    }
+    
+    .level-vip {
+        background-color: #9c27b0;
+        color: white;
+    }
+    
+    .actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .view-button, .history-button, .promo-button, .level-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        text-decoration: none;
+        font-size: 0.85rem;
+    }
+    
+    .view-button {
+        background-color: #2196f3;
+        color: white;
+    }
+    
+    .history-button {
+        background-color: #607d8b;
+        color: white;
+    }
+    
+    .promo-button {
+        background-color: #ff9800;
+        color: white;
+    }
+    
+    .level-button {
+        background-color: #9c27b0;
+        color: white;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+    
+    .action-buttons.center {
+        justify-content: center;
+    }
+    
+    .add-button, .import-button {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+        color: white;
+    }
+    
+    .add-button {
+        background-color: #4caf50;
+    }
+    
+    .import-button {
+        background-color: #2196f3;
+    }
+    
+    .promotions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .promo-card {
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .promo-header {
+        background-color: #d32f2f;
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .promo-header h3 {
+        margin: 0;
+        color: white;
+        font-size: 1.1rem;
+    }
+    
+    .promo-status {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+    
+    .promo-status.active {
+        background-color: #4caf50;
+        color: white;
+    }
+    
+    .promo-status.paused {
+        background-color: #ff9800;
+        color: white;
+    }
+    
+    .promo-status.expired {
+        background-color: #9e9e9e;
+        color: white;
+    }
+    
+    .promo-details {
+        padding: 1rem;
+    }
+    
+    .promo-description {
+        margin-top: 0;
+        margin-bottom: 1rem;
+    }
+    
+    .promo-dates, .promo-eligibility {
+        margin-bottom: 0.75rem;
+        font-size: 0.9rem;
+        color: #555;
+    }
+    
+    .promo-dates i, .promo-eligibility i {
+        margin-right: 0.5rem;
+        color: #d32f2f;
+    }
+    
+    .promo-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+        border-top: 1px solid #ddd;
+        padding-top: 1rem;
+    }
+    
+    .promo-stat {
+        text-align: center;
+    }
+    
+    .stat-label {
+        display: block;
+        font-size: 0.8rem;
+        color: #666;
+    }
+    
+    .stat-value {
+        display: block;
+        font-weight: bold;
+        font-size: 1.1rem;
+        color: #333;
+        margin-top: 0.25rem;
+    }
+    
+    .promo-actions {
+        display: flex;
+        border-top: 1px solid #ddd;
+    }
+    
+    .promo-actions a {
+        flex: 1;
+        text-align: center;
+        padding: 0.75rem;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 0.9rem;
+        transition: background-color 0.3s;
+    }
+    
+    .edit-promo {
+        background-color: #f5f5f5;
+        color: #333;
+    }
+    
+    .send-promo {
+        background-color: #2196f3;
+        color: white;
+    }
+    
+    .pause-promo {
+        background-color: #ff9800;
+        color: white;
+    }
+    
+    .activate-promo {
+        background-color: #4caf50;
+        color: white;
+    }
+    
+    .campaigns-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .campaign-item {
+        background-color: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .campaign-header {
+        padding: 1rem;
+        background-color: #f5f5f5;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .campaign-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+    
+    .campaign-status {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+    
+    .campaign-status.active {
+        background-color: #4caf50;
+        color: white;
+    }
+    
+    .campaign-status.paused {
+        background-color: #ff9800;
+        color: white;
+    }
+    
+    .campaign-status.completed {
+        background-color: #2196f3;
+        color: white;
+    }
+    
+    .campaign-status.draft {
+        background-color: #9e9e9e;
+        color: white;
+    }
+    
+    .campaign-body {
+        padding: 1rem;
+    }
+    
+    .campaign-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .detail-item {
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .detail-label {
+        font-weight: bold;
+        color: #666;
+        font-size: 0.85rem;
+    }
+    
+    .campaign-progress {
+        margin-top: 1rem;
+    }
+    
+    .progress-bar {
+        height: 8px;
+        background-color: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+    
+    .progress {
+        height: 100%;
+        background-color: #4caf50;
+    }
+    
+    .progress-text {
+        font-size: 0.85rem;
+        color: #666;
+    }
+    
+    .campaign-footer {
+        display: flex;
+        border-top: 1px solid #ddd;
+    }
+    
+    .campaign-footer a {
+        flex: 1;
+        text-align: center;
+        padding: 0.75rem;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 0.9rem;
+        transition: background-color 0.3s;
+    }
+    
+    .view-campaign {
+        background-color: #f5f5f5;
+        color: #333;
+    }
+    
+    .edit-campaign {
+        background-color: #607d8b;
+        color: white;
+    }
+    
+    .pause-campaign {
+        background-color: #ff9800;
+        color: white;
+    }
+    
+    .resume-campaign, .start-campaign {
+        background-color: #4caf50;
+        color: white;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tabs functionality
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs and tab contents
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Show corresponding tab content
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId + '-tab').classList.add('active');
+            });
+        });
+        
+        // Client search functionality
+        const searchInput = document.getElementById('clientSearch');
+        const searchButton = document.querySelector('.search-box button');
+        const levelFilter = document.getElementById('levelFilter');
+        const clientRows = document.querySelectorAll('.data-table tbody tr');
+        
+        function filterClients() {
+            const searchText = searchInput.value.toLowerCase();
+            const selectedLevel = levelFilter.value.toLowerCase();
+            
+            clientRows.forEach(row => {
+                const name = row.cells[0].textContent.toLowerCase();
+                const email = row.cells[1].textContent.toLowerCase();
+                const level = row.querySelector('.level-badge').classList[1].replace('level-', '');
+                
+                const matchesSearch = name.includes(searchText) || email.includes(searchText);
+                const matchesLevel = !selectedLevel || level === selectedLevel;
+                
+                if (matchesSearch && matchesLevel) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        searchButton.addEventListener('click', filterClients);
+        searchInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                filterClients();
+            }
+        });
+        
+        levelFilter.addEventListener('change', filterClients);
+        
+        // Establecer el ancho de las barras de progreso
+        const progressBars = document.querySelectorAll('.progress');
+        progressBars.forEach(bar => {
+            const progress = bar.getAttribute('data-progress');
+            if (progress) {
+                bar.style.width = progress + '%';
+            }
+        });
+    });
+</script>
+{% endblock %}

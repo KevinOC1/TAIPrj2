@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Entrada de Stock{% endblock %}
+
+{% block content %}
+<div class="edit-comic-container">
+    <h2>Entrada de Stock</h2>
+    
+    <form action="/stock/entrada" method="post" class="comic-edit-form">
+        <div class="form-group">
+            <label for="comic_id">Seleccionar Cómic:</label>
+            <select id="comic_id" name="comic_id" required class="form-control">
+                <option value="">Selecciona un cómic</option>
+                {% for comic in comics %}
+                <option value="{{ comic.id }}" data-stock="{{ comic.stock }}">
+                    {{ comic.title }} (Stock actual: {{ comic.stock }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="cantidad">Cantidad:</label>
+            <input 
+                type="number" 
+                id="cantidad" 
+                name="cantidad" 
+                required 
+                class="form-control"
+                min="1"
+                placeholder="Ingresa la cantidad de unidades"
+            >
+        </div>
+        
+        <div class="form-group">
+            <label for="proveedor_id">Proveedor (opcional):</label>
+            <select id="proveedor_id" name="proveedor_id" class="form-control">
+                <option value="">Selecciona un proveedor</option>
+                {% for proveedor in proveedores %}
+                <option value="{{ proveedor.id }}">
+                    {{ proveedor.nombre }} ({{ proveedor.email }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="save-button">Registrar Entrada</button>
+            <a href="/inventario" class="cancel-button">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const comicSelect = document.getElementById('comic_id');
+        const cantidadInput = document.getElementById('cantidad');
+        
+        // Mostrar stock actual al seleccionar un cómic
+        comicSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const stockActual = selectedOption.getAttribute('data-stock');
+            
+            // Opcional: Mostrar stock actual dinámicamente
+            const stockInfo = document.getElementById('stock-info');
+            if (stockInfo) {
+                stockInfo.textContent = `Stock actual: ${stockActual}`;
+            }
+        });
+    });
+</script>
+
+<style>
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+</style>
+{% endblock %}

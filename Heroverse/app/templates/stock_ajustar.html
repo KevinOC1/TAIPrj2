@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Ajustar Stock{% endblock %}
+
+{% block content %}
+<div class="edit-comic-container">
+    <h2>Ajustar Stock</h2>
+    
+    <form action="/stock/ajustar" method="post" class="comic-edit-form">
+        <div class="form-group">
+            <label for="comic_id">Seleccionar Cómic:</label>
+            <select id="comic_id" name="comic_id" required class="form-control">
+                <option value="">Selecciona un cómic</option>
+                {% for comic in comics %}
+                <option value="{{ comic.id }}">
+                    {{ comic.title }} (Stock actual: {{ comic.stock }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="cantidad">Cantidad:</label>
+            <input 
+                type="number" 
+                id="cantidad" 
+                name="cantidad" 
+                required 
+                class="form-control"
+                placeholder="Ingresa la cantidad (positiva o negativa)"
+            >
+            <small class="form-text text-muted">
+                Usa números positivos para añadir stock, negativos para reducir.
+            </small>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="save-button">Ajustar Stock</button>
+            <a href="/inventario" class="cancel-button">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form-text {
+        display: block;
+        margin-top: 0.5rem;
+        color: #666;
+    }
+</style>
+{% endblock %}
