@@ -49,6 +49,9 @@ class Proveedor(Base):
     email = Column(String, index=True)
     telefono = Column(String)
     direccion = Column(String)
+    contacto_nombre = Column(String, nullable=True) 
+    contacto_telefono = Column(String, nullable=True)  
+    notas = Column(String, nullable=True)  
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class Pedido(Base):
@@ -97,8 +100,7 @@ class MovimientoStock(Base):
     comic = relationship("Comic")
     proveedor = relationship("Proveedor")  # Remove 'nullable=True'
 
-# Resto del código permanece igual
-# Datos iniciales para cómics 
+
 def init_db(db):
     # Verificar si ya hay cómics en la base de datos
     comics_count = db.query(Comic).count()
@@ -130,6 +132,6 @@ class CambioNivel(Base):
     nivel_nuevo = Column(String)
     motivo = Column(String)
     comentarios = Column(String, nullable=True)
-    fecha = Column(DateTime, default=datetime.now(timezone.utc))  # Updated default
+    fecha = Column(DateTime, default=datetime.now(timezone.utc))  
     
     cliente = relationship("Cliente", back_populates="cambios_nivel")

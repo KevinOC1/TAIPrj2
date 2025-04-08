@@ -73,7 +73,13 @@ def get_pedido(db: Session, pedido_id: int):
     return db.query(models.Pedido).filter(models.Pedido.id == pedido_id).first()
 
 def create_pedido(db: Session, pedido: schemas.PedidoCreate, cliente_id: int):
-    db_pedido = models.Pedido(**pedido.dict(), cliente_id=cliente_id)
+    # Convertir a diccionario y eliminar cliente_id si ya existe
+    pedido_dict = pedido.dict()
+    if 'cliente_id' in pedido_dict:
+        del pedido_dict['cliente_id']
+    
+    # Ahora pasamos explícitamente cliente_id una sola vez
+    db_pedido = models.Pedido(**pedido_dict, cliente_id=cliente_id)
     db.add(db_pedido)
     db.commit()
     db.refresh(db_pedido)

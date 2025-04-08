@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app import models, schemas
 from typing import Optional
+from datetime import datetime
 def delete_detalle_pedido(db: Session, detalle_id: int):
     db_detalle = db.query(models.DetallePedido).filter(models.DetallePedido.id == detalle_id).first()
     if db_detalle:
@@ -224,18 +225,58 @@ def crear_cliente_frecuente(db: Session, cliente_data: dict):
 def obtener_nivel_cliente(db: Session, cliente_id: int):
     """
     Obtener el nivel actual de un cliente
+    :param db: Sesión de base de datos
+    :param cliente_id: ID del cliente
+    :return: Nivel del cliente o None si no se encuentra
     """
     cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
-    return cliente.nivel if cliente else None
+    return cliente.nivel if cliente and hasattr(cliente, 'nivel') else None
 
 def actualizar_nivel_cliente(db: Session, cliente_id: int, nuevo_nivel: str):
     """
     Actualizar el nivel de un cliente
+    :param db: Sesión de base de datos
+    :param cliente_id: ID del cliente
+    :param nuevo_nivel: Nuevo nivel a asignar
+    :return: Cliente actualizado o None si no se encuentra
     """
     cliente = db.query(models.Cliente).filter(models.Cliente.id == cliente_id).first()
-    if cliente:
+    if cliente and hasattr(cliente, 'nivel'):
         cliente.nivel = nuevo_nivel
         db.commit()
         db.refresh(cliente)
         return cliente
     return None
+
+def registrar_cambio_nivel(db: Session, cliente_id: int, nivel_anterior: str, nivel_nuevo: str, motivo: str, comentarios: Optional[str] = None):
+    """
+    Registrar un historial de cambio de nivel de cliente
+    :param db: Sesión de base de datos
+    :param cliente_id: ID del cliente
+    :param nivel_anterior: Nivel anterior del cliente
+    :param nivel_nuevo: Nuevo nivel del cliente
+    :param motivo: Motivo del cambio
+    :param comentarios: Comentarios adicionales
+    :return: Registro del cambio o None si hay error
+    """
+    try:
+        # Verificar si existe la tabla de cambios de nivel
+        if hasattr(models, 'CambioNivel'):
+            cambio = models.CambioNivel(
+                cliente_id=cliente_id,
+                nivel_anterior=nivel_anterior,
+                nivel_nuevo=nivel_nuevo,
+                motivo=motivo,
+                comentarios=comentarios,
+                fecha=datetime.now()
+            )
+            db.add(cambio)
+            db.commit()
+            db.refresh(cambio)
+            return cambio
+        return None
+    except Exception as e:
+        db.rollback()
+        print(f"Error al registrar cambio de nivel: {e}")
+        return None
+    
